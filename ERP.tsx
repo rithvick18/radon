@@ -3,147 +3,1294 @@ import Plot from 'react-plotly.js'
 import { SiteFooter, MinimalNav } from './Components'
 
 /* ══════════════════════════════════════
-   ERP SECTION
+   DYNAMICS 365-STYLE ERP
 ══════════════════════════════════════ */
 export function ERPSection() {
-  const [tab, setTab] = useState('inventory')
+  const [activeModule, setActiveModule] = useState('dashboard')
+  const [selectedItem, setSelectedItem] = useState<any>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterStatus, setFilterStatus] = useState('all')
   
   const pLayout = (t: string, extra={}) => ({
-    title: { text: t, font: { color: '#e8eaf6', size: 13, family: "'Space Mono', monospace", letterSpacing: '0.1em' }, x: 0 },
-    paper_bgcolor: 'transparent',
-    plot_bgcolor: 'transparent',
-    font: { family: "'Space Mono', monospace", color: '#4a5568', size: 9 },
-    margin: { t: 40, r: 20, l: 40, b: 30 },
-    xaxis: { gridcolor: 'rgba(96,165,250,0.06)', zerolinecolor: 'rgba(96,165,250,0.1)' },
-    yaxis: { gridcolor: 'rgba(96,165,250,0.06)', zerolinecolor: 'rgba(96,165,250,0.1)' },
+    title: { text: t, font: { color: '#1a1f36', size: 14, family: "'Inter', sans-serif", weight: 600 }, x: 0 },
+    paper_bgcolor: '#ffffff',
+    plot_bgcolor: '#ffffff',
+    font: { family: "'Inter', sans-serif", color: '#4a5568', size: 11 },
+    margin: { t: 50, r: 30, l: 50, b: 40 },
+    xaxis: { gridcolor: '#f0f0f0', zerolinecolor: '#e0e0e0', tickfont: { color: '#666' } },
+    yaxis: { gridcolor: '#f0f0f0', zerolinecolor: '#e0e0e0', tickfont: { color: '#666' } },
     ...extra
   });
 
+  // Sample data
+  const inventory = [
+    { id: 1, sku: 'PROD-001', name: 'Laptop Computer Model X', category: 'Electronics', quantity: 245, reorderPoint: 50, unitCost: 899, value: 220255, location: 'Warehouse A', status: 'in-stock', supplier: 'TechCorp Inc' },
+    { id: 2, sku: 'PROD-002', name: 'Office Chair Ergonomic', category: 'Furniture', quantity: 89, reorderPoint: 100, unitCost: 299, value: 26611, location: 'Warehouse B', status: 'low-stock', supplier: 'FurniturePlus' },
+    { id: 3, sku: 'PROD-003', name: 'Wireless Mouse', category: 'Electronics', quantity: 567, reorderPoint: 200, unitCost: 45, value: 25515, location: 'Warehouse A', status: 'in-stock', supplier: 'TechCorp Inc' },
+    { id: 4, sku: 'PROD-004', name: 'Standing Desk', category: 'Furniture', quantity: 12, reorderPoint: 25, unitCost: 599, value: 7188, location: 'Warehouse C', status: 'critical', supplier: 'FurniturePlus' },
+    { id: 5, sku: 'PROD-005', name: 'Monitor 27" 4K', category: 'Electronics', quantity: 156, reorderPoint: 75, unitCost: 449, value: 70044, location: 'Warehouse A', status: 'in-stock', supplier: 'DisplayTech' },
+  ]
+
+  const financials = [
+    { id: 1, account: 'Accounts Receivable', type: 'Asset', balance: 1450000, change: 5.2, trend: 'up', department: 'Sales' },
+    { id: 2, account: 'Accounts Payable', type: 'Liability', balance: 890000, change: -2.1, trend: 'down', department: 'Procurement' },
+    { id: 3, account: 'Cash & Equivalents', type: 'Asset', balance: 2340000, change: 12.4, trend: 'up', department: 'Finance' },
+    { id: 4, account: 'Inventory', type: 'Asset', balance: 845000, change: 3.8, trend: 'up', department: 'Operations' },
+    { id: 5, account: 'Revenue', type: 'Revenue', balance: 6780000, change: 18.5, trend: 'up', department: 'Sales' },
+  ]
+
+  const employees = [
+    { id: 1, name: 'John Smith', department: 'Engineering', position: 'Senior Developer', salary: 95000, status: 'active', hireDate: '2022-03-15', manager: 'Sarah Johnson', performance: 4.5 },
+    { id: 2, name: 'Sarah Johnson', department: 'Engineering', position: 'Engineering Manager', salary: 125000, status: 'active', hireDate: '2021-01-10', manager: 'Mike Wilson', performance: 4.8 },
+    { id: 3, name: 'Mike Wilson', department: 'Operations', position: 'Operations Director', salary: 145000, status: 'active', hireDate: '2020-06-01', manager: 'CEO', performance: 4.6 },
+    { id: 4, name: 'Emily Chen', department: 'Finance', position: 'Financial Analyst', salary: 75000, status: 'active', hireDate: '2023-01-20', manager: 'David Brown', performance: 4.2 },
+    { id: 5, name: 'David Brown', department: 'Finance', position: 'Finance Manager', salary: 110000, status: 'active', hireDate: '2021-09-15', manager: 'CFO', performance: 4.7 },
+  ]
+
+  const projects = [
+    { id: 1, name: 'ERP System Upgrade', status: 'in-progress', progress: 65, budget: 250000, spent: 162500, manager: 'Sarah Johnson', startDate: '2024-01-01', endDate: '2024-06-30', team: 8 },
+    { id: 2, name: 'Website Redesign', status: 'planning', progress: 15, budget: 75000, spent: 11250, manager: 'Mike Wilson', startDate: '2024-02-01', endDate: '2024-04-30', team: 4 },
+    { id: 3, name: 'Mobile App Development', status: 'in-progress', progress: 40, budget: 180000, spent: 72000, manager: 'John Smith', startDate: '2024-01-15', endDate: '2024-05-15', team: 6 },
+    { id: 4, name: 'Cloud Migration', status: 'completed', progress: 100, budget: 320000, spent: 298000, manager: 'Sarah Johnson', startDate: '2023-09-01', endDate: '2023-12-31', team: 10 },
+  ]
+
+  const getStatusColor = (status: string) => {
+    const colors: { [key: string]: string } = {
+      'in-stock': '#10b981',
+      'low-stock': '#f59e0b',
+      'critical': '#ef4444',
+      'active': '#10b981',
+      'in-progress': '#3b82f6',
+      'planning': '#8b5cf6',
+      'completed': '#10b981',
+      'up': '#10b981',
+      'down': '#ef4444'
+    }
+    return colors[status] || '#6b7280'
+  }
+
+  const filteredInventory = inventory.filter(item => {
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         item.sku.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = filterStatus === 'all' || item.status === filterStatus
+    return matchesSearch && matchesStatus
+  })
+
   return (
-    <section id="erp-sec" className="module-pane" style={{ background: 'var(--s1)', padding: '5rem 3.5rem' }}>
-      <div className="sec-top reveal">
-         <div>
-           <div className="sec-tag">Resource Control</div>
-           <h2 className="sec-h">ERP Integration.</h2>
-           <div className="tick-line"></div>
-         </div>
-         <p className="sec-sub">Real-time resource allocation, cash flow, and supply chain metrics — tracked via Plotly.</p>
+    <div style={{ display: 'flex', height: '100vh', background: '#f8fafc' }}>
+      {/* Sidebar Navigation */}
+      <div style={{ width: '260px', background: '#1e293b', color: '#ffffff', padding: '20px 0' }}>
+        <div style={{ padding: '0 20px', marginBottom: '30px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '600', margin: 0, color: '#ffffff' }}>Radon ERP</h2>
+          <p style={{ fontSize: '12px', color: '#94a3b8', margin: '4px 0 0 0' }}>Enterprise Resource Planning</p>
+        </div>
+        
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          {[
+            { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+            { id: 'financials', label: 'Financial Management', icon: '💰' },
+            { id: 'inventory', label: 'Inventory Management', icon: '📦' },
+            { id: 'supply-chain', label: 'Supply Chain', icon: '🚚' },
+            { id: 'hr', label: 'Human Resources', icon: '👥' },
+            { id: 'projects', label: 'Project Management', icon: '📋' },
+            { id: 'manufacturing', label: 'Manufacturing', icon: '🏭' },
+            { id: 'reports', label: 'Reports & Analytics', icon: '📈' },
+          ].map(item => (
+            <button
+              key={item.id}
+              onClick={() => setActiveModule(item.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '12px 20px',
+                background: activeModule === item.id ? '#2563eb' : 'transparent',
+                border: 'none',
+                color: '#ffffff',
+                fontSize: '14px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                textAlign: 'left'
+              }}
+              onMouseEnter={(e) => {
+                if (activeModule !== item.id) {
+                  e.currentTarget.style.background = '#334155'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeModule !== item.id) {
+                  e.currentTarget.style.background = 'transparent'
+                }
+              }}
+            >
+              <span style={{ fontSize: '16px' }}>{item.icon}</span>
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </nav>
       </div>
-      <div className="mod-subnav reveal reveal-d1">
-         <div className={`mod-tab ${tab === 'inventory' ? 'active' : ''}`} onClick={() => setTab('inventory')}>INVENTORY</div>
-         <div className={`mod-tab ${tab === 'supply' ? 'active' : ''}`} onClick={() => setTab('supply')}>SUPPLY CHAIN</div>
-         <div className={`mod-tab ${tab === 'finance' ? 'active' : ''}`} onClick={() => setTab('finance')}>FINANCE</div>
-      </div>
-      <div className="reveal reveal-d2" style={{ minHeight: '500px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+
+      {/* Main Content Area */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* Top Header */}
+        <div style={{ background: '#ffffff', borderBottom: '1px solid #e5e7eb', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h1 style={{ fontSize: '24px', fontWeight: '600', color: '#1a1f36', margin: 0 }}>
+              {activeModule === 'dashboard' && 'ERP Dashboard'}
+              {activeModule === 'financials' && 'Financial Management'}
+              {activeModule === 'inventory' && 'Inventory Management'}
+              {activeModule === 'supply-chain' && 'Supply Chain Management'}
+              {activeModule === 'hr' && 'Human Resources'}
+              {activeModule === 'projects' && 'Project Management'}
+              {activeModule === 'manufacturing' && 'Manufacturing'}
+              {activeModule === 'reports' && 'Reports & Analytics'}
+            </h1>
+            <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0 0' }}>Manage your enterprise resources efficiently</p>
+          </div>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <button style={{
+              padding: '8px 16px',
+              background: '#ffffff',
+              border: '1px solid #d1d5db',
+              borderRadius: '6px',
+              color: '#374151',
+              fontSize: '14px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              🔍 Search
+            </button>
+            <button style={{
+              padding: '8px 16px',
+              background: '#2563eb',
+              border: 'none',
+              borderRadius: '6px',
+              color: '#ffffff',
+              fontSize: '14px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              ➕ New Record
+            </button>
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div style={{ flex: 1, overflow: 'auto', padding: '24px' }}>
          
-         {/* INVENTORY TAB */}
-         {tab === 'inventory' && (
-           <>
-             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1px', background: 'rgba(96,165,250,.06)' }}>
-               {[
-                 {l: 'Total SKUs', v: '14,204', s: 'Across 8 facilities'},
-                 {l: 'Inventory Value', v: '$8.4M', s: '+2.4% MoM'},
-                 {l: 'Low Stock Alerts', v: '24', s: 'Critical threshold', c: '#f87171'},
-                 {l: 'Overstocked', v: '130', s: 'Capital tied up', c: '#fbbf24'}
-               ].map((k, i) => (
-                 <div key={i} style={{ background: "var(--s2)", padding: '1.25rem' }}>
-                   <div style={{ fontSize: '1.8rem', fontFamily: "'Bebas Neue', sans-serif", color: k.c || 'var(--elec)' }}>{k.v}</div>
-                   <div style={{ fontSize: '.6rem', fontFamily: "'Space Mono', monospace", color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '4px' }}>{k.l}</div>
-                   <div style={{ fontSize: '.55rem', fontFamily: "'Space Mono', monospace", color: 'var(--text)', opacity: 0.5, marginTop: '8px' }}>{k.s}</div>
-                 </div>
-               ))}
-             </div>
-             <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: '1px', background: 'rgba(96,165,250,.06)' }}>
-               <div style={{ background: "var(--s2)", padding: '1rem' }}>
-                 <Plot data={[
-                   { type: 'pie', values: [45, 25, 20, 10], labels: ['Raw', 'WIP', 'Finished', 'Pack'], hole: 0.6, marker: { colors: ['#60a5fa', '#8b5cf6', '#34d399', '#fbbf24'] }, textinfo: 'none' }
-                 ]} layout={pLayout('SKU DISTRIBUTION', { margin: { t: 30, b: 10, l: 10, r: 10 }, showlegend: true, legend: { orientation: 'h', y: -0.2 } })} style={{ width: '100%', height: '240px' }} config={{ displayModeBar: false }} />
-               </div>
-               <div style={{ background: "var(--s2)", padding: '1rem' }}>
-                 <Plot data={[
-                   { type: 'scatter', mode: 'lines+markers', name: 'Inbound', x: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], y: [120, 150, 180, 90, 200, 140], line: { color: '#34d399', shape: 'spline' }, fill: 'tozeroy', fillcolor: 'rgba(52, 211, 153, 0.1)' },
-                   { type: 'scatter', mode: 'lines+markers', name: 'Outbound', x: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], y: [100, 130, 200, 120, 250, 110], line: { color: '#60a5fa', shape: 'spline' } }
-                 ]} layout={pLayout('STOCK MOVEMENT (WEEKLY)', { margin: { t: 30, b: 30, l: 30, r: 10 }, legend: { orientation: 'h', y: 1.1, x: 0.7 } })} style={{ width: '100%', height: '240px' }} config={{ displayModeBar: false }} />
-               </div>
-               <div style={{ background: "var(--s2)", padding: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                 <Plot data={[
-                   { type: 'indicator', mode: 'gauge+number', value: 85, title: { text: "UTILIZATION", font: { size: 10, color: 'var(--muted)' } }, gauge: { axis: { range: [null, 100], tickcolor: 'rgba(255,255,255,0.1)' }, bar: { color: '#f87171' }, bgcolor: 'rgba(255,255,255,0.05)', bordercolor: 'transparent' } }
-                 ]} layout={{ paper_bgcolor: 'transparent', font: { family: "'Space Mono', monospace", color: '#4a5568' }, margin: { t: 0, b: 0, l: 20, r: 20 } }} style={{ width: '100%', height: '180px' }} config={{ displayModeBar: false }} />
-               </div>
-             </div>
-           </>
-         )}
+          {/* Dashboard View */}
+          {activeModule === 'dashboard' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* KPI Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+                {[
+                  { label: 'Total Revenue', value: '$6.78M', change: '+18.5%', trend: 'up' },
+                  { label: 'Inventory Value', value: '$845K', change: '+3.8%', trend: 'up' },
+                  { label: 'Active Projects', value: '12', change: '+2', trend: 'up' },
+                  { label: 'Employees', value: '247', change: '+5.2%', trend: 'up' },
+                ].map((kpi, i) => (
+                  <div key={i} style={{
+                    background: '#ffffff',
+                    padding: '20px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  }}>
+                    <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>{kpi.label}</div>
+                    <div style={{ fontSize: '28px', fontWeight: '600', color: '#1a1f36', marginBottom: '8px' }}>{kpi.value}</div>
+                    <div style={{
+                      fontSize: '12px',
+                      color: kpi.trend === 'up' ? '#10b981' : '#ef4444',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      {kpi.trend === 'up' ? '↑' : '↓'} {kpi.change} from last month
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-         {/* SUPPLY CHAIN TAB */}
-         {tab === 'supply' && (
-           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1px', background: 'rgba(96,165,250,.06)' }}>
-             <div style={{ background: "var(--s2)", padding: '1rem' }}>
-               <Plot data={[
-                 { type: 'scattergeo', locations: ['USA', 'CHN', 'GBR', 'FRA', 'CAN', 'IND'], locationmode: 'ISO-3', marker: { size: [20, 35, 10, 15, 8, 25], color: '#60a5fa', opacity: 0.7, line: { width: 1, color: '#fff' } }, text: ['USA - 20 Shipments', 'China - 35 Shipments', 'UK - 10 Shipments', 'France - 15 Shipments', 'Canada - 8 Shipments', 'India - 25 Shipments'], name: 'Nominal' },
-                 { type: 'scattergeo', locations: ['DEU', 'MEX', 'BRA'], locationmode: 'ISO-3', marker: { size: [15, 12, 10], color: '#f87171', symbol: 'star' }, text: ['DELAYED: Germany', 'DELAYED: Mexico', 'DELAYED: Brazil'], name: 'Delayed' }
-               ]} layout={pLayout('ACTIVE GLOBAL SHIPMENTS', { geo: { scope: 'world', showland: true, landcolor: '#0d0d2b', showocean: true, oceancolor: '#03030a', bordercolor: '#1e2140', bgcolor: 'transparent' }, margin: { t: 30, b: 0, l: 0, r: 0 }, showlegend: true, legend: { orientation: 'h', y: 0 } })} style={{ width: '100%', height: '400px' }} config={{ displayModeBar: false }} />
-             </div>
-             <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', background: 'rgba(96,165,250,.06)' }}>
-               <div style={{ background: "var(--s2)", padding: '1rem', flex: 1 }}>
-                 <Plot data={[
-                   { type: 'scatterpolar', r: [95, 80, 90, 75, 95], theta: ['Delivery', 'Quality', 'Pricing', 'Communication', 'Delivery'], fill: 'toself', fillcolor: 'rgba(96, 165, 250, 0.2)', line: { color: '#60a5fa' } }
-                 ]} layout={pLayout('VENDOR PERFORMANCE', { polar: { radialaxis: { visible: true, range: [0, 100], gridcolor: 'rgba(255,255,255,0.05)', linecolor: 'transparent', tickfont: { color: 'transparent' } }, angularaxis: { gridcolor: 'rgba(255,255,255,0.05)', linecolor: 'transparent' }, bgcolor: 'transparent' }, margin: { t: 40, b: 20, l: 30, r: 30 } })} style={{ width: '100%', height: '100%', minHeight: '200px' }} config={{ displayModeBar: false }} />
-               </div>
-               <div style={{ background: "var(--s2)", padding: '1.25rem', flex: 1, overflowY: 'auto' }}>
-                 <div className="p-lbl" style={{ marginBottom: '1rem' }}>Procurement Alerts</div>
-                 {[{m: 'Material XYZ short', s: 'high'}, {m: 'Shipment #89 delayed by weather', s: 'med'}, {m: 'Supplier ABC contract expiry', s: 'low'}].map((a, i) => (
-                   <div key={i} className={`alert-item ${a.s}`} style={{ marginBottom: '8px' }}>
-                     <span className="alert-msg">{a.m}</span>
-                     <span className={`alert-badge ${a.s}`} style={{ marginLeft: 'auto' }}>{a.s.toUpperCase()}</span>
-                   </div>
-                 ))}
-               </div>
-             </div>
-           </div>
-         )}
+              {/* Charts Row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
+                <div style={{
+                  background: '#ffffff',
+                  padding: '24px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                }}>
+                  <Plot data={[
+                    { type: 'bar', name: 'Revenue', x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], y: [420, 480, 510, 490, 580, 620], marker: { color: '#10b981' } },
+                    { type: 'bar', name: 'Expenses', x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], y: [380, 390, 410, 420, 450, 440], marker: { color: '#ef4444' } },
+                    { type: 'scatter', name: 'Profit', x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], y: [40, 90, 100, 70, 130, 180], mode: 'lines+markers', line: { color: '#3b82f6', width: 3 } }
+                  ]} layout={pLayout('Revenue vs Expenses', { barmode: 'group', margin: { t: 50, b: 40, l: 50, r: 30 } })} style={{ width: '100%', height: '350px' }} config={{ displayModeBar: false }} />
+                </div>
+                <div style={{
+                  background: '#ffffff',
+                  padding: '24px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                }}>
+                  <Plot data={[
+                    { type: 'pie', values: [45, 25, 20, 10], labels: ['Electronics', 'Furniture', 'Office Supplies', 'Raw Materials'], hole: 0.7, marker: { colors: ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b'] }, textinfo: 'label+percent' }
+                  ]} layout={pLayout('Inventory by Category', { margin: { t: 50, b: 30, l: 20, r: 20 }, showlegend: true })} style={{ width: '100%', height: '350px' }} config={{ displayModeBar: false }} />
+                </div>
+              </div>
 
-         {/* FINANCE TAB */}
-         {tab === 'finance' && (
-           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', background: 'rgba(96,165,250,.06)' }}>
-               {[
-                 {l: 'Accounts Receivable', v: '$1.4M', c: '#34d399'},
-                 {l: 'Accounts Payable', v: '$890K', c: '#f87171'},
-                 {l: 'Net Run Rate', v: '$510K', c: '#60a5fa'}
-               ].map((k, i) => (
-                 <div key={i} style={{ background: "var(--s2)", padding: '1.5rem', textAlign: 'center' }}>
-                   <div style={{ fontSize: '.6rem', fontFamily: "'Space Mono', monospace", color: 'var(--muted)', letterSpacing: '0.15em', marginBottom: '8px' }}>{k.l}</div>
-                   <div style={{ fontSize: '2.5rem', fontFamily: "'Bebas Neue', sans-serif", color: k.c }}>{k.v}</div>
-                 </div>
-               ))}
-             </div>
-             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1px', background: 'rgba(96,165,250,.06)' }}>
-               <div style={{ background: "var(--s2)", padding: '1.5rem' }}>
-                 <Plot data={[
-                   { type: 'bar', name: 'Revenue', x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], y: [420, 480, 510, 490, 580, 620], marker: { color: '#34d399' } },
-                   { type: 'bar', name: 'Expenses', x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], y: [380, 390, 410, 420, 450, 440], marker: { color: '#f87171' } },
-                   { type: 'scatter', name: 'Net Margin (%)', x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], y: [9.5, 18.7, 19.6, 14.2, 22.4, 29.0], yaxis: 'y2', mode: 'lines+markers', line: { color: '#60a5fa', width: 2 } }
-                 ]} layout={pLayout('CASH FLOW SUMMARY', { barmode: 'group', yaxis2: { title: { text: 'Margin %', font: { color: 'var(--muted)' } }, overlaying: 'y', side: 'right', gridcolor: 'transparent' }, margin: { t: 40, b: 30, l: 40, r: 40 }, legend: { orientation: 'h', y: 1.1 } })} style={{ width: '100%', height: '300px' }} config={{ displayModeBar: false }} />
-               </div>
-               <div style={{ background: "var(--s2)", padding: '1.5rem' }}>
-                 <div className="p-lbl" style={{ marginBottom: '1.5rem' }}>Budget Trackers (YTD)</div>
-                 {[['Marketing', 120, 150], ['R&D', 280, 300], ['Ops', 450, 400]].map(([lbl, val, bud], i) => (
-                   <div key={i} style={{ marginBottom: '1.5rem' }}>
-                     <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: "'Space Mono', monospace", fontSize: '.6rem', color: 'var(--muted)', marginBottom: '6px' }}>
-                       <span>{lbl}</span><span>${val}k / ${bud}k</span>
-                     </div>
-                     <div style={{ height: '6px', background: 'rgba(255,255,255,.05)', borderRadius: '3px', position: 'relative', overflow: 'hidden' }}>
-                       <div style={{ position: 'absolute', top: 0, left: 0, height: '100%', width: `${((val as number)/(bud as number))*100}%`, background: (val as number) > (bud as number) ? '#f87171' : '#60a5fa' }}></div>
-                     </div>
-                   </div>
-                 ))}
-               </div>
-             </div>
-           </div>
-         )}
+              {/* Recent Activities */}
+              <div style={{
+                background: '#ffffff',
+                padding: '24px',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+              }}>
+                <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a1f36', marginBottom: '16px' }}>Recent Activities</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+                  <div>
+                    <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#6b7280', marginBottom: '12px' }}>Latest Transactions</h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {[
+                        { desc: 'Invoice #1245 paid', amount: '$12,500', time: '2 hours ago' },
+                        { desc: 'Purchase order approved', amount: '$8,200', time: '5 hours ago' },
+                        { desc: 'Salary payments processed', amount: '$125,000', time: '1 day ago' },
+                      ].map((item, i) => (
+                        <div key={i} style={{
+                          padding: '8px',
+                          background: '#f9fafb',
+                          borderRadius: '4px',
+                          fontSize: '12px'
+                        }}>
+                          <div style={{ fontWeight: '500', color: '#1a1f36' }}>{item.desc}</div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6b7280', marginTop: '2px' }}>
+                            <span>{item.amount}</span>
+                            <span>{item.time}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#6b7280', marginBottom: '12px' }}>Inventory Alerts</h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {[
+                        { item: 'Standing Desk', status: 'critical', qty: '12 units' },
+                        { item: 'Office Chair', status: 'low-stock', qty: '89 units' },
+                        { item: 'Monitor 27"', status: 'reorder', qty: '156 units' },
+                      ].map((alert, i) => (
+                        <div key={i} style={{
+                          padding: '8px',
+                          background: '#f9fafb',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          borderLeft: `3px solid ${getStatusColor(alert.status)}`
+                        }}>
+                          <div style={{ fontWeight: '500', color: '#1a1f36' }}>{alert.item}</div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6b7280', marginTop: '2px' }}>
+                            <span>{alert.qty}</span>
+                            <span style={{ color: getStatusColor(alert.status) }}>{alert.status}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#6b7280', marginBottom: '12px' }}>Project Updates</h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {[
+                        { project: 'ERP Upgrade', progress: 65, status: 'on-track' },
+                        { project: 'Website Redesign', progress: 15, status: 'planning' },
+                        { project: 'Mobile App', progress: 40, status: 'in-progress' },
+                      ].map((proj, i) => (
+                        <div key={i} style={{
+                          padding: '8px',
+                          background: '#f9fafb',
+                          borderRadius: '4px',
+                          fontSize: '12px'
+                        }}>
+                          <div style={{ fontWeight: '500', color: '#1a1f36' }}>{proj.project}</div>
+                          <div style={{ marginTop: '4px' }}>
+                            <div style={{
+                              height: '4px',
+                              background: '#e5e7eb',
+                              borderRadius: '2px',
+                              overflow: 'hidden'
+                            }}>
+                              <div style={{
+                                width: `${proj.progress}%`,
+                                height: '100%',
+                                backgroundColor: getStatusColor(proj.status)
+                              }} />
+                            </div>
+                            <div style={{ color: '#6b7280', marginTop: '2px' }}>{proj.progress}% complete</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
+          {/* Financial Management View */}
+          {activeModule === 'financials' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* Financial KPIs */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+                {[
+                  { label: 'Total Assets', value: '$4.68M', change: '+5.2%', trend: 'up' },
+                  { label: 'Total Liabilities', value: '$890K', change: '-2.1%', trend: 'down' },
+                  { label: 'Cash Flow', value: '$510K', change: '+12.4%', trend: 'up' },
+                  { label: 'Profit Margin', value: '18.5%', change: '+3.2%', trend: 'up' },
+                ].map((kpi, i) => (
+                  <div key={i} style={{
+                    background: '#ffffff',
+                    padding: '20px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  }}>
+                    <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>{kpi.label}</div>
+                    <div style={{ fontSize: '28px', fontWeight: '600', color: '#1a1f36', marginBottom: '8px' }}>{kpi.value}</div>
+                    <div style={{
+                      fontSize: '12px',
+                      color: kpi.trend === 'up' ? '#10b981' : '#ef4444',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      {kpi.trend === 'up' ? '↑' : '↓'} {kpi.change} from last quarter
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Financial Charts */}
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
+                <div style={{
+                  background: '#ffffff',
+                  padding: '24px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                }}>
+                  <Plot data={[
+                    { type: 'bar', name: 'Revenue', x: ['Q1', 'Q2', 'Q3', 'Q4'], y: [1420, 1680, 1890, 1780], marker: { color: '#10b981' } },
+                    { type: 'bar', name: 'Expenses', x: ['Q1', 'Q2', 'Q3', 'Q4'], y: [1180, 1310, 1420, 1370], marker: { color: '#ef4444' } },
+                    { type: 'scatter', name: 'Net Profit', x: ['Q1', 'Q2', 'Q3', 'Q4'], y: [240, 370, 470, 410], mode: 'lines+markers', line: { color: '#3b82f6', width: 3 } }
+                  ]} layout={pLayout('Quarterly Financial Performance', { barmode: 'group', margin: { t: 50, b: 40, l: 50, r: 30 } })} style={{ width: '100%', height: '350px' }} config={{ displayModeBar: false }} />
+                </div>
+                <div style={{
+                  background: '#ffffff',
+                  padding: '24px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                }}>
+                  <Plot data={[
+                    { type: 'pie', values: [1450, 890, 2340, 845], labels: ['Accounts Receivable', 'Accounts Payable', 'Cash', 'Inventory'], hole: 0.7, marker: { colors: ['#3b82f6', '#ef4444', '#10b981', '#f59e0b'] }, textinfo: 'label+percent' }
+                  ]} layout={pLayout('Asset Distribution', { margin: { t: 50, b: 30, l: 20, r: 20 }, showlegend: true })} style={{ width: '100%', height: '350px' }} config={{ displayModeBar: false }} />
+                </div>
+              </div>
+
+              {/* Financial Accounts Table */}
+              <div style={{
+                background: '#ffffff',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                overflow: 'hidden'
+              }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead style={{ background: '#f9fafb' }}>
+                    <tr>
+                      {['Account', 'Type', 'Balance', 'Change', 'Department'].map(header => (
+                        <th key={header} style={{
+                          padding: '12px 16px',
+                          textAlign: 'left',
+                          fontSize: '12px',
+                          fontWeight: '600',
+                          color: '#6b7280',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.05em',
+                          borderBottom: '1px solid #e5e7eb'
+                        }}>
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {financials.map(account => (
+                      <tr
+                        key={account.id}
+                        style={{
+                          borderBottom: '1px solid #f3f4f6',
+                          cursor: 'pointer',
+                          transition: 'background-color 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f9fafb'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent'
+                        }}
+                        onClick={() => setSelectedItem(account)}
+                      >
+                        <td style={{ padding: '12px 16px' }}>
+                          <div style={{ fontSize: '14px', fontWeight: '500', color: '#1a1f36' }}>{account.account}</div>
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <span style={{
+                            padding: '4px 8px',
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            borderRadius: '4px',
+                            backgroundColor: account.type === 'Asset' ? '#10b98120' : account.type === 'Liability' ? '#ef444420' : '#3b82f620',
+                            color: account.type === 'Asset' ? '#10b981' : account.type === 'Liability' ? '#ef4444' : '#3b82f6'
+                          }}>
+                            {account.type}
+                          </span>
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <span style={{ fontSize: '14px', fontWeight: '600', color: '#1a1f36' }}>
+                            ${(account.balance / 1000).toFixed(0)}K
+                          </span>
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <span style={{ fontSize: '14px', color: getStatusColor(account.trend) }}>
+                              {account.trend === 'up' ? '↑' : '↓'} {Math.abs(account.change)}%
+                            </span>
+                          </div>
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <div style={{ fontSize: '14px', color: '#6b7280' }}>{account.department}</div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Inventory Management View */}
+          {activeModule === 'inventory' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* Inventory KPIs */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+                {[
+                  { label: 'Total SKUs', value: '14,204', change: '+124', trend: 'up' },
+                  { label: 'Inventory Value', value: '$845K', change: '+3.8%', trend: 'up' },
+                  { label: 'Low Stock Alerts', value: '24', change: '-8', trend: 'down' },
+                  { label: 'Turnover Rate', value: '4.2x', change: '+0.3x', trend: 'up' },
+                ].map((kpi, i) => (
+                  <div key={i} style={{
+                    background: '#ffffff',
+                    padding: '20px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  }}>
+                    <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>{kpi.label}</div>
+                    <div style={{ fontSize: '28px', fontWeight: '600', color: '#1a1f36', marginBottom: '8px' }}>{kpi.value}</div>
+                    <div style={{
+                      fontSize: '12px',
+                      color: kpi.trend === 'up' ? '#10b981' : '#ef4444',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      {kpi.trend === 'up' ? '↑' : '↓'} {kpi.change} from last month
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Search and Filters */}
+              <div style={{
+                background: '#ffffff',
+                padding: '20px',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                display: 'flex',
+                gap: '16px',
+                alignItems: 'center'
+              }}>
+                <input
+                  type="text"
+                  placeholder="Search inventory..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    fontSize: '14px'
+                  }}
+                />
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  style={{
+                    padding: '8px 12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    fontSize: '14px'
+                  }}
+                >
+                  <option value="all">All Status</option>
+                  <option value="in-stock">In Stock</option>
+                  <option value="low-stock">Low Stock</option>
+                  <option value="critical">Critical</option>
+                </select>
+              </div>
+
+              {/* Inventory Table */}
+              <div style={{
+                background: '#ffffff',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                overflow: 'hidden'
+              }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead style={{ background: '#f9fafb' }}>
+                    <tr>
+                      {['SKU', 'Product Name', 'Category', 'Quantity', 'Value', 'Status', 'Location'].map(header => (
+                        <th key={header} style={{
+                          padding: '12px 16px',
+                          textAlign: 'left',
+                          fontSize: '12px',
+                          fontWeight: '600',
+                          color: '#6b7280',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.05em',
+                          borderBottom: '1px solid #e5e7eb'
+                        }}>
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredInventory.map(item => (
+                      <tr
+                        key={item.id}
+                        style={{
+                          borderBottom: '1px solid #f3f4f6',
+                          cursor: 'pointer',
+                          transition: 'background-color 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f9fafb'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent'
+                        }}
+                        onClick={() => setSelectedItem(item)}
+                      >
+                        <td style={{ padding: '12px 16px' }}>
+                          <div style={{ fontSize: '14px', fontWeight: '500', color: '#1a1f36' }}>{item.sku}</div>
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <div>
+                            <div style={{ fontSize: '14px', fontWeight: '500', color: '#1a1f36' }}>{item.name}</div>
+                            <div style={{ fontSize: '12px', color: '#6b7280' }}>{item.supplier}</div>
+                          </div>
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <div style={{ fontSize: '14px', color: '#6b7280' }}>{item.category}</div>
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <div style={{ fontSize: '14px', fontWeight: '600', color: '#1a1f36' }}>{item.quantity}</div>
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <div style={{ fontSize: '14px', fontWeight: '600', color: '#1a1f36' }}>
+                            ${(item.value / 1000).toFixed(0)}K
+                          </div>
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <span style={{
+                            padding: '4px 8px',
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            borderRadius: '4px',
+                            backgroundColor: getStatusColor(item.status) + '20',
+                            color: getStatusColor(item.status)
+                          }}>
+                            {item.status.charAt(0).toUpperCase() + item.status.slice(1).replace('-', ' ')}
+                          </span>
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <div style={{ fontSize: '14px', color: '#6b7280' }}>{item.location}</div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Human Resources View */}
+          {activeModule === 'hr' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* HR KPIs */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+                {[
+                  { label: 'Total Employees', value: '247', change: '+12', trend: 'up' },
+                  { label: 'Avg Salary', value: '$85K', change: '+3.2%', trend: 'up' },
+                  { label: 'Turnover Rate', value: '8.5%', change: '-1.2%', trend: 'down' },
+                  { label: 'Open Positions', value: '8', change: '-3', trend: 'down' },
+                ].map((kpi, i) => (
+                  <div key={i} style={{
+                    background: '#ffffff',
+                    padding: '20px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  }}>
+                    <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>{kpi.label}</div>
+                    <div style={{ fontSize: '28px', fontWeight: '600', color: '#1a1f36', marginBottom: '8px' }}>{kpi.value}</div>
+                    <div style={{
+                      fontSize: '12px',
+                      color: kpi.trend === 'up' ? '#10b981' : '#ef4444',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      {kpi.trend === 'up' ? '↑' : '↓'} {kpi.change} from last quarter
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Employee Table */}
+              <div style={{
+                background: '#ffffff',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                overflow: 'hidden'
+              }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead style={{ background: '#f9fafb' }}>
+                    <tr>
+                      {['Employee', 'Department', 'Position', 'Salary', 'Performance', 'Hire Date'].map(header => (
+                        <th key={header} style={{
+                          padding: '12px 16px',
+                          textAlign: 'left',
+                          fontSize: '12px',
+                          fontWeight: '600',
+                          color: '#6b7280',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.05em',
+                          borderBottom: '1px solid #e5e7eb'
+                        }}>
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {employees.map(employee => (
+                      <tr
+                        key={employee.id}
+                        style={{
+                          borderBottom: '1px solid #f3f4f6',
+                          cursor: 'pointer',
+                          transition: 'background-color 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f9fafb'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent'
+                        }}
+                        onClick={() => setSelectedItem(employee)}
+                      >
+                        <td style={{ padding: '12px 16px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div style={{
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '50%',
+                              backgroundColor: '#3b82f6',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#ffffff',
+                              fontWeight: '600',
+                              fontSize: '12px'
+                            }}>
+                              {employee.name.split(' ').map(n => n[0]).join('')}
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '14px', fontWeight: '500', color: '#1a1f36' }}>{employee.name}</div>
+                              <div style={{ fontSize: '12px', color: '#6b7280' }}>{employee.manager}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <div style={{ fontSize: '14px', color: '#6b7280' }}>{employee.department}</div>
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <div style={{ fontSize: '14px', color: '#1a1f36' }}>{employee.position}</div>
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <div style={{ fontSize: '14px', fontWeight: '600', color: '#1a1f36' }}>
+                            ${(employee.salary / 1000).toFixed(0)}K
+                          </div>
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{
+                              width: '60px',
+                              height: '6px',
+                              backgroundColor: '#e5e7eb',
+                              borderRadius: '3px',
+                              overflow: 'hidden'
+                            }}>
+                              <div style={{
+                                width: `${(employee.performance / 5) * 100}%`,
+                                height: '100%',
+                                backgroundColor: employee.performance >= 4 ? '#10b981' : employee.performance >= 3 ? '#f59e0b' : '#ef4444'
+                              }} />
+                            </div>
+                            <span style={{ fontSize: '12px', color: '#6b7280', minWidth: '25px' }}>
+                              {employee.performance}
+                            </span>
+                          </div>
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <div style={{ fontSize: '14px', color: '#6b7280' }}>{employee.hireDate}</div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Project Management View */}
+          {activeModule === 'projects' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* Project KPIs */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+                {[
+                  { label: 'Active Projects', value: '12', change: '+2', trend: 'up' },
+                  { label: 'Total Budget', value: '$825K', change: '+15%', trend: 'up' },
+                  { label: 'On-Time Delivery', value: '85%', change: '+5%', trend: 'up' },
+                  { label: 'Team Utilization', value: '78%', change: '+3%', trend: 'up' },
+                ].map((kpi, i) => (
+                  <div key={i} style={{
+                    background: '#ffffff',
+                    padding: '20px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  }}>
+                    <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>{kpi.label}</div>
+                    <div style={{ fontSize: '28px', fontWeight: '600', color: '#1a1f36', marginBottom: '8px' }}>{kpi.value}</div>
+                    <div style={{
+                      fontSize: '12px',
+                      color: kpi.trend === 'up' ? '#10b981' : '#ef4444',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      {kpi.trend === 'up' ? '↑' : '↓'} {kpi.change} from last month
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Project Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '20px' }}>
+                {projects.map(project => (
+                  <div key={project.id} style={{
+                    background: '#ffffff',
+                    padding: '24px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '16px' }}>
+                      <div>
+                        <h4 style={{ fontSize: '16px', fontWeight: '600', color: '#1a1f36', margin: '0 0 4px 0' }}>{project.name}</h4>
+                        <div style={{ fontSize: '12px', color: '#6b7280' }}>Manager: {project.manager}</div>
+                      </div>
+                      <span style={{
+                        padding: '4px 8px',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        borderRadius: '4px',
+                        backgroundColor: getStatusColor(project.status) + '20',
+                        color: getStatusColor(project.status)
+                      }}>
+                        {project.status.charAt(0).toUpperCase() + project.status.slice(1).replace('-', ' ')}
+                      </span>
+                    </div>
+                    
+                    <div style={{ marginBottom: '16px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>
+                        <span>Progress</span>
+                        <span>{project.progress}%</span>
+                      </div>
+                      <div style={{
+                        height: '8px',
+                        background: '#e5e7eb',
+                        borderRadius: '4px',
+                        overflow: 'hidden'
+                      }}>
+                        <div style={{
+                          width: `${project.progress}%`,
+                          height: '100%',
+                          backgroundColor: getStatusColor(project.status)
+                        }} />
+                      </div>
+                    </div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '12px', color: '#6b7280' }}>
+                      <div>
+                        <div style={{ fontWeight: '600', color: '#1a1f36', marginBottom: '4px' }}>Budget</div>
+                        <div>${(project.budget / 1000).toFixed(0)}K</div>
+                        <div>Spent: ${(project.spent / 1000).toFixed(0)}K</div>
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: '600', color: '#1a1f36', marginBottom: '4px' }}>Timeline</div>
+                        <div>{project.startDate}</div>
+                        <div>{project.endDate}</div>
+                      </div>
+                    </div>
+                    
+                    <div style={{ marginTop: '12px', fontSize: '12px', color: '#6b7280' }}>
+                      <strong>Team:</strong> {project.team} members
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Supply Chain View */}
+          {activeModule === 'supply-chain' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* Supply Chain KPIs */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+                {[
+                  { label: 'Active Shipments', value: '47', change: '+8', trend: 'up' },
+                  { label: 'On-Time Delivery', value: '92%', change: '+3%', trend: 'up' },
+                  { label: 'Supplier Score', value: '4.6', change: '+0.2', trend: 'up' },
+                  { label: 'Logistics Cost', value: '$124K', change: '-5%', trend: 'down' },
+                ].map((kpi, i) => (
+                  <div key={i} style={{
+                    background: '#ffffff',
+                    padding: '20px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  }}>
+                    <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>{kpi.label}</div>
+                    <div style={{ fontSize: '28px', fontWeight: '600', color: '#1a1f36', marginBottom: '8px' }}>{kpi.value}</div>
+                    <div style={{
+                      fontSize: '12px',
+                      color: kpi.trend === 'up' ? '#10b981' : '#ef4444',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      {kpi.trend === 'up' ? '↑' : '↓'} {kpi.change} from last month
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Supply Chain Charts */}
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
+                <div style={{
+                  background: '#ffffff',
+                  padding: '24px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                }}>
+                  <Plot data={[
+                    { type: 'scatter', mode: 'lines+markers', name: 'Inbound', x: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], y: [120, 150, 180, 90, 200, 140], line: { color: '#10b981', shape: 'spline' }, fill: 'tozeroy', fillcolor: 'rgba(16, 185, 129, 0.1)' },
+                    { type: 'scatter', mode: 'lines+markers', name: 'Outbound', x: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], y: [100, 130, 200, 120, 250, 110], line: { color: '#3b82f6', shape: 'spline' } }
+                  ]} layout={pLayout('Weekly Shipments', { margin: { t: 50, b: 40, l: 50, r: 30 } })} style={{ width: '100%', height: '350px' }} config={{ displayModeBar: false }} />
+                </div>
+                <div style={{
+                  background: '#ffffff',
+                  padding: '24px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                }}>
+                  <Plot data={[
+                    { type: 'scatterpolar', r: [95, 80, 90, 75, 95], theta: ['Delivery', 'Quality', 'Pricing', 'Communication', 'Flexibility'], fill: 'toself', fillcolor: 'rgba(59, 130, 246, 0.2)', line: { color: '#3b82f6' } }
+                  ]} layout={pLayout('Supplier Performance', { polar: { radialaxis: { visible: true, range: [0, 100] } }, margin: { t: 50, b: 30, l: 30, r: 30 } })} style={{ width: '100%', height: '350px' }} config={{ displayModeBar: false }} />
+                </div>
+              </div>
+
+              {/* Shipment Tracking */}
+              <div style={{
+                background: '#ffffff',
+                padding: '24px',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+              }}>
+                <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a1f36', marginBottom: '16px' }}>Active Shipments</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+                  {[
+                    { id: 'SHP-001', destination: 'New York, USA', status: 'in-transit', eta: '2 days', progress: 65 },
+                    { id: 'SHP-002', destination: 'London, UK', status: 'delayed', eta: '5 days', progress: 30 },
+                    { id: 'SHP-003', destination: 'Tokyo, Japan', status: 'delivered', eta: 'Delivered', progress: 100 },
+                    { id: 'SHP-004', destination: 'Sydney, Australia', status: 'in-transit', eta: '7 days', progress: 45 },
+                  ].map(shipment => (
+                    <div key={shipment.id} style={{
+                      padding: '16px',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      background: '#f9fafb'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <div>
+                          <div style={{ fontSize: '14px', fontWeight: '600', color: '#1a1f36' }}>{shipment.id}</div>
+                          <div style={{ fontSize: '12px', color: '#6b7280' }}>{shipment.destination}</div>
+                        </div>
+                        <span style={{
+                          padding: '4px 8px',
+                          fontSize: '12px',
+                          fontWeight: '500',
+                          borderRadius: '4px',
+                          backgroundColor: getStatusColor(shipment.status) + '20',
+                          color: getStatusColor(shipment.status)
+                        }}>
+                          {shipment.status.charAt(0).toUpperCase() + shipment.status.slice(1).replace('-', ' ')}
+                        </span>
+                      </div>
+                      <div style={{ marginBottom: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>
+                          <span>Progress</span>
+                          <span>{shipment.progress}%</span>
+                        </div>
+                        <div style={{
+                          height: '6px',
+                          background: '#e5e7eb',
+                          borderRadius: '3px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            width: `${shipment.progress}%`,
+                            height: '100%',
+                            backgroundColor: getStatusColor(shipment.status)
+                          }} />
+                        </div>
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                        <strong>ETA:</strong> {shipment.eta}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Manufacturing View */}
+          {activeModule === 'manufacturing' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* Manufacturing KPIs */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+                {[
+                  { label: 'Production Rate', value: '1,250', change: '+8%', trend: 'up' },
+                  { label: 'Quality Rate', value: '98.5%', change: '+0.5%', trend: 'up' },
+                  { label: 'Downtime', value: '2.4%', change: '-1.2%', trend: 'down' },
+                  { label: 'Efficiency', value: '87%', change: '+3%', trend: 'up' },
+                ].map((kpi, i) => (
+                  <div key={i} style={{
+                    background: '#ffffff',
+                    padding: '20px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  }}>
+                    <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>{kpi.label}</div>
+                    <div style={{ fontSize: '28px', fontWeight: '600', color: '#1a1f36', marginBottom: '8px' }}>{kpi.value}</div>
+                    <div style={{
+                      fontSize: '12px',
+                      color: kpi.trend === 'up' ? '#10b981' : '#ef4444',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      {kpi.trend === 'up' ? '↑' : '↓'} {kpi.change} from last week
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Production Charts */}
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
+                <div style={{
+                  background: '#ffffff',
+                  padding: '24px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                }}>
+                  <Plot data={[
+                    { type: 'scatter', mode: 'lines+markers', name: 'Actual', x: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], y: [1200, 1350, 1180, 1420, 1380, 1250], line: { color: '#10b981', shape: 'spline' } },
+                    { type: 'scatter', mode: 'lines', name: 'Target', x: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], y: [1300, 1300, 1300, 1300, 1300, 1300], line: { color: '#ef4444', dash: 'dash' } }
+                  ]} layout={pLayout('Daily Production Output', { margin: { t: 50, b: 40, l: 50, r: 30 } })} style={{ width: '100%', height: '350px' }} config={{ displayModeBar: false }} />
+                </div>
+                <div style={{
+                  background: '#ffffff',
+                  padding: '24px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                }}>
+                  <Plot data={[
+                    { type: 'pie', values: [45, 25, 20, 10], labels: ['Line A', 'Line B', 'Line C', 'Line D'], hole: 0.7, marker: { colors: ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b'] }, textinfo: 'label+percent' }
+                  ]} layout={pLayout('Production by Line', { margin: { t: 50, b: 30, l: 20, r: 20 }, showlegend: true })} style={{ width: '100%', height: '350px' }} config={{ displayModeBar: false }} />
+                </div>
+              </div>
+
+              {/* Production Lines */}
+              <div style={{
+                background: '#ffffff',
+                padding: '24px',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+              }}>
+                <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a1f36', marginBottom: '16px' }}>Production Lines Status</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+                  {[
+                    { name: 'Line A - Electronics', status: 'running', output: 450, target: 500, efficiency: 90 },
+                    { name: 'Line B - Assembly', status: 'running', output: 380, target: 400, efficiency: 95 },
+                    { name: 'Line C - Packaging', status: 'maintenance', output: 0, target: 300, efficiency: 0 },
+                    { name: 'Line D - Quality Control', status: 'running', output: 420, target: 450, efficiency: 93 },
+                  ].map((line, i) => (
+                    <div key={i} style={{
+                      padding: '16px',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      background: '#f9fafb'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <div>
+                          <div style={{ fontSize: '14px', fontWeight: '600', color: '#1a1f36' }}>{line.name}</div>
+                          <div style={{ fontSize: '12px', color: '#6b7280' }}>Efficiency: {line.efficiency}%</div>
+                        </div>
+                        <span style={{
+                          padding: '4px 8px',
+                          fontSize: '12px',
+                          fontWeight: '500',
+                          borderRadius: '4px',
+                          backgroundColor: getStatusColor(line.status) + '20',
+                          color: getStatusColor(line.status)
+                        }}>
+                          {line.status.charAt(0).toUpperCase() + line.status.slice(1)}
+                        </span>
+                      </div>
+                      <div style={{ marginBottom: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>
+                          <span>Output: {line.output} / {line.target}</span>
+                        </div>
+                        <div style={{
+                          height: '6px',
+                          background: '#e5e7eb',
+                          borderRadius: '3px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            width: `${(line.output / line.target) * 100}%`,
+                            height: '100%',
+                            backgroundColor: getStatusColor(line.status)
+                          }} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Reports View */}
+          {activeModule === 'reports' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div style={{
+                  background: '#ffffff',
+                  padding: '24px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                }}>
+                  <Plot data={[
+                    { type: 'bar', x: ['Q1', 'Q2', 'Q3', 'Q4'], y: [1420, 1680, 1890, 1780], marker: { color: '#3b82f6' } }
+                  ]} layout={pLayout('Quarterly Revenue Trend', { margin: { t: 50, b: 40, l: 50, r: 30 } })} style={{ width: '100%', height: '300px' }} config={{ displayModeBar: false }} />
+                </div>
+                <div style={{
+                  background: '#ffffff',
+                  padding: '24px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                }}>
+                  <Plot data={[
+                    { type: 'scatter', mode: 'lines+markers', x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], y: [92, 88, 95, 91, 94, 96], line: { color: '#10b981' }, marker: { color: '#10b981', size: 8 } }
+                  ]} layout={pLayout('Quality Metrics', { margin: { t: 50, b: 40, l: 50, r: 30 } })} style={{ width: '100%', height: '300px' }} config={{ displayModeBar: false }} />
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
+                <div style={{
+                  background: '#ffffff',
+                  padding: '24px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                }}>
+                  <Plot data={[
+                    { type: 'bar', name: 'Revenue', x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], y: [420, 480, 510, 490, 580, 620], marker: { color: '#10b981' } },
+                    { type: 'bar', name: 'Expenses', x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], y: [380, 390, 410, 420, 450, 440], marker: { color: '#ef4444' } }
+                  ]} layout={pLayout('Monthly Financial Overview', { barmode: 'group', margin: { t: 50, b: 40, l: 50, r: 30 } })} style={{ width: '100%', height: '400px' }} config={{ displayModeBar: false }} />
+                </div>
+                <div style={{
+                  background: '#ffffff',
+                  padding: '24px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                }}>
+                  <Plot data={[
+                    { type: 'pie', values: [245, 89, 567, 12, 156], labels: ['Laptops', 'Chairs', 'Mice', 'Desks', 'Monitors'], hole: 0.7, marker: { colors: ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'] }, textinfo: 'label+percent' }
+                  ]} layout={pLayout('Inventory Distribution', { margin: { t: 50, b: 30, l: 20, r: 20 }, showlegend: true })} style={{ width: '100%', height: '400px' }} config={{ displayModeBar: false }} />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </section>
+
+      {/* Item Detail Sidebar */}
+      {selectedItem && (
+        <div style={{
+          width: '400px',
+          background: '#ffffff',
+          borderLeft: '1px solid #e5e7eb',
+          padding: '24px',
+          overflow: 'auto'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a1f36', margin: 0 }}>Item Details</h3>
+            <button
+              onClick={() => setSelectedItem(null)}
+              style={{
+                background: 'none',
+                border: 'none',
+                fontSize: '20px',
+                cursor: 'pointer',
+                color: '#6b7280'
+              }}
+            >
+              ×
+            </button>
+          </div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* Dynamic content based on selected item type */}
+            {selectedItem.sku && (
+              <div>
+                <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#6b7280', marginBottom: '8px' }}>Product Information</h4>
+                <div style={{ fontSize: '16px', fontWeight: '600', color: '#1a1f36', marginBottom: '4px' }}>{selectedItem.name}</div>
+                <div style={{ fontSize: '14px', color: '#6b7280' }}>{selectedItem.category} • {selectedItem.sku}</div>
+              </div>
+            )}
+            
+            {selectedItem.account && (
+              <div>
+                <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#6b7280', marginBottom: '8px' }}>Account Information</h4>
+                <div style={{ fontSize: '16px', fontWeight: '600', color: '#1a1f36', marginBottom: '4px' }}>{selectedItem.account}</div>
+                <div style={{ fontSize: '14px', color: '#6b7280' }}>{selectedItem.type} • {selectedItem.department}</div>
+              </div>
+            )}
+            
+            {selectedItem.name && !selectedItem.sku && (
+              <div>
+                <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#6b7280', marginBottom: '8px' }}>Employee Information</h4>
+                <div style={{ fontSize: '16px', fontWeight: '600', color: '#1a1f36', marginBottom: '4px' }}>{selectedItem.name}</div>
+                <div style={{ fontSize: '14px', color: '#6b7280' }}>{selectedItem.position} • {selectedItem.department}</div>
+              </div>
+            )}
+            
+            {selectedItem.name && !selectedItem.sku && !selectedItem.account && (
+              <div>
+                <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#6b7280', marginBottom: '8px' }}>Project Information</h4>
+                <div style={{ fontSize: '16px', fontWeight: '600', color: '#1a1f36', marginBottom: '4px' }}>{selectedItem.name}</div>
+                <div style={{ fontSize: '14px', color: '#6b7280' }}>Manager: {selectedItem.manager}</div>
+              </div>
+            )}
+            
+            <div>
+              <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#6b7280', marginBottom: '12px' }}>Actions</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <button style={{
+                  padding: '10px 16px',
+                  background: '#3b82f6',
+                  border: 'none',
+                  borderRadius: '6px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}>
+                  Edit Item
+                </button>
+                <button style={{
+                  padding: '10px 16px',
+                  background: '#ffffff',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  color: '#374151',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}>
+                  View History
+                </button>
+                <button style={{
+                  padding: '10px 16px',
+                  background: '#ffffff',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  color: '#374151',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}>
+                  Export Report
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 

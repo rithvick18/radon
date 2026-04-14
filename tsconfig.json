@@ -17,6 +17,6 @@
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["App.tsx", "main.tsx", "vite-env.d.ts"],
+  "include": ["App.tsx", "main.tsx", "src/vite-env.d.ts", "src/**/*.ts", "src/**/*.tsx"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

@@ -1,14 +1,23 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, lazy, Suspense, type ComponentType } from 'react'
 
-import { CRMPage } from './CRM'
-import { ERPPage } from './ERP'
-import { AnalyticsPage } from './Analytics'
-import { NeoGuardPage } from './NeoGuard'
-import { EmailEnginePage } from './EmailEngine'
 import { SiteFooter } from './Components'
 import GoogleLoginButton from './src/Components/GoogleLoginButton'
-import MistralChatbot from './src/Components/MistralChatbot'
-import AgentDashboard from './src/Components/AgentDashboard'
+
+function lazyNamed<T extends Record<string, ComponentType<any>>>(factory: () => Promise<T>, exportName: keyof T) {
+  return lazy(async () => {
+    const module = await factory()
+    return { default: module[exportName] as ComponentType<any> }
+  })
+}
+
+const CRMPage = lazyNamed(() => import('./CRM'), 'CRMPage')
+const ERPPage = lazyNamed(() => import('./ERP'), 'ERPPage')
+const AnalyticsPage = lazyNamed(() => import('./Analytics'), 'AnalyticsPage')
+const NeoGuardPage = lazyNamed(() => import('./NeoGuard'), 'NeoGuardPage')
+const EmailEnginePage = lazyNamed(() => import('./EmailEngine'), 'EmailEnginePage')
+const AIAgentPage = lazyNamed(() => import('./AIAgent'), 'AIAgentPage')
+const MistralChatbot = lazy(() => import('./src/Components/MistralChatbot'))
+const AgentDashboard = lazy(() => import('./src/Components/AgentDashboard'))
 
 /* ══════════════════════════════════════
    SYSTEM STATUS BAR
@@ -40,9 +49,10 @@ function SystemBar() {
    PARTICLE FIELD
    Canvas-based ambient background
 ══════════════════════════════════════ */
-function ParticleField() {
+function ParticleField({ disabled = false }: { disabled?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   useEffect(() => {
+    if (disabled) return
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
@@ -62,6 +72,7 @@ function ParticleField() {
       })
     }
 
+    let raf = 0
     const animate = () => {
       ctx.clearRect(0, 0, w, h)
       ctx.fillStyle = 'rgba(96, 165, 250, 0.2)'
@@ -76,7 +87,7 @@ function ParticleField() {
         ctx.arc(p.x, p.y, p.s, 0, Math.PI * 2)
         ctx.fill()
       })
-      requestAnimationFrame(animate)
+      raf = requestAnimationFrame(animate)
     }
     const onResize = () => {
       w = canvas.width = window.innerWidth
@@ -84,15 +95,19 @@ function ParticleField() {
     }
     window.addEventListener('resize', onResize)
     animate()
-    return () => window.removeEventListener('resize', onResize)
-  }, [])
+    return () => {
+      window.removeEventListener('resize', onResize)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [disabled])
+  if (disabled) return null
   return <canvas id="hero-particles" ref={canvasRef} />
 }
 
 /* ══════════════════════════════════════
    CURSOR COMPONENT
 ══════════════════════════════════════ */
-function Cursor() {
+function Cursor({ disabled = false }: { disabled?: boolean }) {
   const curRef = useRef<HTMLDivElement>(null)
   const trailRef = useRef<HTMLDivElement>(null)
   const mx = useRef(0)
@@ -101,6 +116,7 @@ function Cursor() {
   const ty = useRef(0)
 
   useEffect(() => {
+    if (disabled) return
     const onMove = (e: MouseEvent) => {
       mx.current = e.clientX
       my.current = e.clientY
@@ -135,7 +151,9 @@ function Cursor() {
       document.removeEventListener('mouseup', onUp)
       if (raf) cancelAnimationFrame(raf)
     }
-  }, [])
+  }, [disabled])
+
+  if (disabled) return null
 
   return (
     <>
@@ -174,6 +192,29 @@ interface LoaderPageProps {
 interface MainPageProps {
   onLogout: () => void
   onNavigate: (p: string) => void
+  onOpenCommandDeck: () => void
+  disableAmbientEffects: boolean
+}
+
+function useMediaQuery(query: string) {
+  const getMatches = () => {
+    if (typeof window === 'undefined') return false
+    return window.matchMedia(query).matches
+  }
+
+  const [matches, setMatches] = useState(getMatches)
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(query)
+    const onChange = (event: MediaQueryListEvent) => setMatches(event.matches)
+
+    setMatches(mediaQuery.matches)
+    mediaQuery.addEventListener('change', onChange)
+
+    return () => mediaQuery.removeEventListener('change', onChange)
+  }, [query])
+
+  return matches
 }
 
 /* ══════════════════════════════════════
@@ -570,11 +611,83 @@ function AgentChat() {
   )
 }
 
+interface CommandDeckProps {
+  open: boolean
+  onClose: () => void
+  onNavigate: (page: string) => void
+}
+
+function CommandDeck({ open, onClose, onNavigate }: CommandDeckProps) {
+  useEffect(() => {
+    if (!open) return
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [onClose, open])
+
+  if (!open) return null
+
+  const jumpToSection = (id: string) => {
+    window.dispatchEvent(new CustomEvent('radon:jump-section', { detail: id }))
+    onClose()
+  }
+
+  const actions = [
+    { label: 'Operations Overview', meta: 'Live dashboard', action: () => jumpToSection('dash-sec') },
+    { label: 'NeoGuard Briefing', meta: 'Threat intelligence', action: () => jumpToSection('neoguard-sec') },
+    { label: 'Central Agent', meta: 'Conversational control', action: () => jumpToSection('agent') },
+    { label: 'Analytics Suite', meta: 'Module page', action: () => { onNavigate('analytics'); onClose() } },
+    { label: 'CRM Workspace', meta: 'Module page', action: () => { onNavigate('crm'); onClose() } },
+    { label: 'ERP Workspace', meta: 'Module page', action: () => { onNavigate('erp'); onClose() } },
+    { label: 'Email Engine', meta: 'Module page', action: () => { onNavigate('email'); onClose() } },
+    { label: 'NeoGuard Module', meta: 'Module page', action: () => { onNavigate('neoguard'); onClose() } },
+  ]
+
+  return (
+    <div className="command-deck-backdrop" onClick={onClose}>
+      <div className="command-deck" role="dialog" aria-modal="true" aria-label="Command deck" onClick={e => e.stopPropagation()}>
+        <div className="command-deck-header">
+          <div>
+            <div className="command-deck-eyebrow">Mission Control</div>
+            <h3>Jump anywhere in Radon.</h3>
+          </div>
+          <button className="command-close" onClick={onClose} aria-label="Close command deck">Close</button>
+        </div>
+        <div className="command-status-grid">
+          {[
+            ['Priority alerts', '03'],
+            ['Protected today', '$142K'],
+            ['Active agents', '07'],
+          ].map(([label, value]) => (
+            <div className="command-status-card" key={label}>
+              <span>{label}</span>
+              <strong>{value}</strong>
+            </div>
+          ))}
+        </div>
+        <div className="command-action-grid">
+          {actions.map(item => (
+            <button key={item.label} className="command-action" onClick={item.action}>
+              <span>{item.label}</span>
+              <small>{item.meta}</small>
+            </button>
+          ))}
+        </div>
+        <div className="command-deck-footer">Press <kbd>Esc</kbd> to close. Use <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>K</kbd> to reopen.</div>
+      </div>
+    </div>
+  )
+}
+
 
 /* ══════════════════════════════════════
    MAIN PAGE
 ══════════════════════════════════════ */
-function MainPage({ onLogout, onNavigate }: MainPageProps) {
+function MainPage({ onLogout, onNavigate, onOpenCommandDeck, disableAmbientEffects }: MainPageProps) {
   const mainRef = useRef<HTMLDivElement>(null)
   const navRef = useRef<HTMLElement>(null)
   const txListRef = useRef<HTMLDivElement>(null)
@@ -633,6 +746,16 @@ function MainPage({ onLogout, onNavigate }: MainPageProps) {
     m?.addEventListener('scroll', onScroll)
     setTimeout(onScroll, 200)
     return () => m?.removeEventListener('scroll', onScroll)
+  }, [])
+
+  useEffect(() => {
+    const onJump = (event: Event) => {
+      const id = (event as CustomEvent<string>).detail
+      if (id) navScroll(id)
+    }
+
+    window.addEventListener('radon:jump-section', onJump)
+    return () => window.removeEventListener('radon:jump-section', onJump)
   }, [])
 
   // Live TX feed + intervals
@@ -740,16 +863,13 @@ function MainPage({ onLogout, onNavigate }: MainPageProps) {
       <nav id="site-nav" ref={navRef}>
         <a className="n-logo" href="#"><span className="grad">RAD</span><span className="dot">·</span><span className="grad">ON</span></a>
         <ul className="n-links">
-          {[['modules', 'Modules'], ['dash-sec', 'Dashboard'], ['neoguard-sec', 'NeoGuard'], ['agent', 'Agent']].map(([id, label]) => (
-            <li key={id}><a href={`#${id}`} onClick={e => { e.preventDefault(); navScroll(id) }}>{label}</a></li>
-          ))}
-          <li><a href="#" onClick={e => { e.preventDefault(); onNavigate('neoguard') }}>NeoGuard</a></li>
           <li><a href="#" onClick={e => { e.preventDefault(); onNavigate('email') }}>Email Engine</a></li>
           <li><a href="#" onClick={e => { e.preventDefault(); onNavigate('analytics') }}>Analytics</a></li>
           <li><a href="#" onClick={e => { e.preventDefault(); onNavigate('crm') }}>CRM</a></li>
           <li><a href="#" onClick={e => { e.preventDefault(); onNavigate('erp') }}>ERP</a></li>
         </ul>
         <div className="n-right">
+          <button className="n-command" onClick={onOpenCommandDeck}><span>Mission Control</span><span className="n-command-key">Ctrl+K</span></button>
           <div className="n-news">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--muted)" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
             <div className="n-news-count">3</div>
@@ -761,7 +881,7 @@ function MainPage({ onLogout, onNavigate }: MainPageProps) {
 
       {/* HERO */}
       <section id="hero">
-        <ParticleField />
+        <ParticleField disabled={disableAmbientEffects} />
         <div className="h-grid"></div>
         <div className="h-orb h-orb1"></div>
         <div className="h-orb h-orb2"></div>
@@ -1029,9 +1149,23 @@ function MainPage({ onLogout, onNavigate }: MainPageProps) {
 /* ══════════════════════════════════════
    APP ROOT
 ══════════════════════════════════════ */
+function RouteFallback() {
+  return (
+    <div className="route-loading-shell">
+      <div className="route-loading-card">
+        <div className="route-loading-label">Loading module</div>
+        <div className="route-loading-bar"><span></span></div>
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
-  const [page, setPage] = useState<'login' | 'loader' | 'main' | 'analytics' | 'crm' | 'erp' | 'neoguard' | 'email'>('login')
+  const [page, setPage] = useState<'login' | 'loader' | 'main' | 'analytics' | 'crm' | 'erp' | 'neoguard' | 'email' | 'ai-agent'>('login')
+  const [commandDeckOpen, setCommandDeckOpen] = useState(false)
   const flashRef = useRef<HTMLDivElement>(null)
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
+  const usesCoarsePointer = useMediaQuery('(pointer: coarse)')
 
   const doFlash = useCallback((cb: () => void) => {
     const f = flashRef.current
@@ -1048,8 +1182,12 @@ export default function App() {
 
   const handleLogin = () => doFlash(() => setPage('loader'))
   const handleLoaderDone = () => doFlash(() => setPage('main'))
-  const handleNavigate = (v: string) => doFlash(() => setPage(v as any))
+  const handleNavigate = (v: string) => {
+    setCommandDeckOpen(false)
+    doFlash(() => setPage(v as any))
+  }
   const handleLogout = () => {
+    setCommandDeckOpen(false)
     doFlash(() => {
       // Reset hero elements
       ['h-tag', 'h-sub', 'h-actions', 'h-stats'].forEach(id => {
@@ -1075,21 +1213,50 @@ export default function App() {
     })
   }
 
+  useEffect(() => {
+    if (page !== 'main') return
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target
+      const isTypingTarget = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement
+      const isModifierShortcut = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k'
+      const isSlashShortcut = event.key === '/' && !isTypingTarget
+
+      if (isModifierShortcut || isSlashShortcut) {
+        event.preventDefault()
+        setCommandDeckOpen(prev => !prev)
+      }
+    }
+
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [page])
+
+  useEffect(() => {
+    document.body.classList.toggle('cursor-off', !usesCoarsePointer)
+    document.body.classList.toggle('motion-reduced', prefersReducedMotion)
+  }, [prefersReducedMotion, usesCoarsePointer])
+
   return (
     <>
-      <SystemBar />
-      <Cursor />
+      <Cursor disabled={usesCoarsePointer || prefersReducedMotion} />
       <div id="flash" ref={flashRef}></div>
       {page === 'login' && <LoginPage onLogin={handleLogin} />}
       {page === 'loader' && <LoaderPage onDone={handleLoaderDone} />}
-      {page === 'main' && <MainPage onLogout={handleLogout} onNavigate={handleNavigate} />}
-      {page === 'analytics' && <AnalyticsPage onLogout={handleLogout} onNavigate={handleNavigate} />}
-      {page === 'crm' && <CRMPage onLogout={handleLogout} onNavigate={handleNavigate} />}
-      {page === 'erp' && <ERPPage onLogout={handleLogout} onNavigate={handleNavigate} />}
-      {page === 'neoguard' && <NeoGuardPage onNavigate={handleNavigate} onLogout={handleLogout} />}
-      {page === 'email' && <EmailEnginePage onNavigate={handleNavigate} onLogout={handleLogout} />}
-      <MistralChatbot />
-      <AgentDashboard />
+      {page === 'main' && <MainPage onLogout={handleLogout} onNavigate={handleNavigate} onOpenCommandDeck={() => setCommandDeckOpen(true)} disableAmbientEffects={usesCoarsePointer || prefersReducedMotion} />}
+      <Suspense fallback={<RouteFallback />}>
+        {page === 'analytics' && <AnalyticsPage onLogout={handleLogout} onNavigate={handleNavigate} />}
+        {page === 'crm' && <CRMPage onLogout={handleLogout} onNavigate={handleNavigate} />}
+        {page === 'erp' && <ERPPage onLogout={handleLogout} onNavigate={handleNavigate} />}
+        {page === 'neoguard' && <NeoGuardPage onNavigate={handleNavigate} onLogout={handleLogout} />}
+        {page === 'email' && <EmailEnginePage onNavigate={handleNavigate} onLogout={handleLogout} />}
+        {page === 'ai-agent' && <AIAgentPage onNavigate={handleNavigate} onLogout={handleLogout} />}
+      </Suspense>
+      {page === 'main' && <CommandDeck open={commandDeckOpen} onClose={() => setCommandDeckOpen(false)} onNavigate={handleNavigate} />}
+      <Suspense fallback={null}>
+        <MistralChatbot />
+        <AgentDashboard />
+      </Suspense>
     </>
   )
 }
