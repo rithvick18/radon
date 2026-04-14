@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useCollection } from './src/Services/useDatabase'
+import type { Email as DbEmail, Contact, Customer } from './src/Services/DatabaseTypes'
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // EMAIL ENGINE MODULE
@@ -27,6 +29,8 @@ interface Email {
   suggestedReplies: string[]
   thread: string[]
   unsubscribeLink: string | null
+  contactId: string | null
+  customerId: string | null
 }
 
 interface EmailStats {
@@ -39,6 +43,7 @@ interface EmailStats {
 }
 
 // --- Mock Data ---
+// Mock data kept for reference - now using database emails
 const MOCK_EMAILS: Email[] = [
   {
     id: "e001",
@@ -63,7 +68,9 @@ const MOCK_EMAILS: Email[] = [
       "Hi Sarah, noted on the changes. Thursday at 2 PM works. I have some concerns about the April 30th timeline I'd like to discuss."
     ],
     thread: ["e001"],
-    unsubscribeLink: null
+    unsubscribeLink: null,
+    contactId: "con-1",
+    customerId: "cust-1"
   },
   {
     id: "e002",
@@ -85,7 +92,9 @@ const MOCK_EMAILS: Email[] = [
     actionItems: [],
     suggestedReplies: [],
     thread: ["e002"],
-    unsubscribeLink: "https://github.com/unsubscribe"
+    unsubscribeLink: "https://github.com/unsubscribe",
+    contactId: null,
+    customerId: null
   },
   {
     id: "e003",
@@ -110,7 +119,9 @@ const MOCK_EMAILS: Email[] = [
       "Hi Marcus, I've received your message and am escalating to our Sev-1 response team immediately. You'll get a call within 5 minutes."
     ],
     thread: ["e003"],
-    unsubscribeLink: null
+    unsubscribeLink: null,
+    contactId: "con-2",
+    customerId: "cust-2"
   },
   {
     id: "e004",
@@ -132,7 +143,9 @@ const MOCK_EMAILS: Email[] = [
     actionItems: ["Review connection requests from Ananya Sharma (Google ML)"],
     suggestedReplies: [],
     thread: ["e004"],
-    unsubscribeLink: "https://linkedin.com/unsubscribe"
+    unsubscribeLink: "https://linkedin.com/unsubscribe",
+    contactId: null,
+    customerId: null
   },
   {
     id: "e005",
@@ -157,7 +170,9 @@ const MOCK_EMAILS: Email[] = [
       "Hi Priya, appreciate you reaching out. Could you share a brief deck before we connect?"
     ],
     thread: ["e005"],
-    unsubscribeLink: null
+    unsubscribeLink: null,
+    contactId: "con-3",
+    customerId: "cust-3"
   },
   {
     id: "e006",
@@ -179,7 +194,9 @@ const MOCK_EMAILS: Email[] = [
     actionItems: ["Review Lambda invocation spike (340% increase)"],
     suggestedReplies: [],
     thread: ["e006"],
-    unsubscribeLink: null
+    unsubscribeLink: null,
+    contactId: null,
+    customerId: null
   },
   {
     id: "e007",
@@ -204,7 +221,9 @@ const MOCK_EMAILS: Email[] = [
       "Sounds amazing! I'm in. Vegetarian food needed for me."
     ],
     thread: ["e007"],
-    unsubscribeLink: null
+    unsubscribeLink: null,
+    contactId: null,
+    customerId: null
   },
   {
     id: "e008",
@@ -226,7 +245,9 @@ const MOCK_EMAILS: Email[] = [
     actionItems: [],
     suggestedReplies: [],
     thread: ["e008"],
-    unsubscribeLink: "https://spotify.com/unsubscribe"
+    unsubscribeLink: "https://spotify.com/unsubscribe",
+    contactId: null,
+    customerId: null
   },
   {
     id: "e009",
@@ -251,7 +272,9 @@ const MOCK_EMAILS: Email[] = [
       "Thanks Daniel. Quick question — do you need the full technical architecture docs or would an executive summary suffice for initial review?"
     ],
     thread: ["e009"],
-    unsubscribeLink: null
+    unsubscribeLink: null,
+    contactId: "con-5",
+    customerId: "cust-5"
   },
   {
     id: "e010",
@@ -273,7 +296,9 @@ const MOCK_EMAILS: Email[] = [
     actionItems: ["Download certificate", "Update LinkedIn profile", "Share on social media"],
     suggestedReplies: [],
     thread: ["e010"],
-    unsubscribeLink: null
+    unsubscribeLink: null,
+    contactId: null,
+    customerId: null
   }
 ]
 
@@ -918,7 +943,41 @@ function ComposeModal({
 
 // --- Main Component ---
 export function EmailEnginePage({ onNavigate, onLogout }: { onNavigate: (p: string) => void, onLogout: () => void }) {
-  const [emails, setEmails] = useState<Email[]>(MOCK_EMAILS)
+  // Data from shared database
+  const dbEmails = useCollection<DbEmail>('emails')
+  const contacts = useCollection<Contact>('contacts')
+  const customers = useCollection<Customer>('customers')
+
+  // Convert database emails to local Email format
+  const [emails, setEmails] = useState<Email[]>([])
+
+  useEffect(() => {
+    const mapped = dbEmails.map((e: DbEmail): Email => ({
+      id: e.id,
+      from: { name: e.fromName, email: e.fromEmail, avatar: e.fromAvatar },
+      to: e.to,
+      subject: e.subject,
+      preview: e.preview,
+      body: e.body,
+      timestamp: new Date(e.timestamp),
+      category: e.category,
+      labels: e.labels,
+      priority: e.priority,
+      isRead: e.isRead,
+      isStarred: e.isStarred,
+      hasAttachments: e.hasAttachments,
+      attachments: e.attachments,
+      sentiment: e.sentiment,
+      aiSummary: e.aiSummary,
+      actionItems: e.actionItems,
+      suggestedReplies: e.suggestedReplies,
+      thread: [e.threadId],
+      unsubscribeLink: null,
+      contactId: e.contactId,
+      customerId: e.customerId,
+    }))
+    setEmails(mapped)
+  }, [dbEmails])
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null)
   const [activeView, setActiveView] = useState<'inbox' | 'starred' | 'unread' | 'priority'>('inbox')
   const [activeCategory, setActiveCategory] = useState<'all' | 'primary' | 'updates' | 'social' | 'promotions'>('all')
@@ -1030,7 +1089,9 @@ export function EmailEnginePage({ onNavigate, onLogout }: { onNavigate: (p: stri
       actionItems: [],
       suggestedReplies: [],
       thread: [],
-      unsubscribeLink: null
+      unsubscribeLink: null,
+      contactId: null,
+      customerId: null
     }
     setEmails(prev => [newEmail, ...prev])
   }, [])

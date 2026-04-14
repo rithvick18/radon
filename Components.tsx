@@ -15,6 +15,10 @@ export function SiteFooter() {
 export function MinimalNav({ onNavigate, onLogout, active }: any) {
   const navItems = [
     { key: 'erp', label: 'ERP' },
+    { key: 'crm', label: 'CRM' },
+    { key: 'analytics', label: 'Analytics' },
+    { key: 'email', label: 'Email' },
+    { key: 'neo-guard', label: 'NeoGuard' },
     { key: 'ai-agent', label: 'AI Agent' },
   ];
 

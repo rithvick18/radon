@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import Plot from 'react-plotly.js'
 import { SiteFooter, MinimalNav } from './Components'
+import { useCollection, db } from './src/Services/useDatabase'
+import type { Product, InventoryItem, FinancialAccount, Employee, Project, Supplier } from './src/Services/DatabaseTypes'
 
 /* ══════════════════════════════════════
    DYNAMICS 365-STYLE ERP
@@ -22,37 +24,46 @@ export function ERPSection() {
     ...extra
   });
 
-  // Sample data
-  const inventory = [
-    { id: 1, sku: 'PROD-001', name: 'Laptop Computer Model X', category: 'Electronics', quantity: 245, reorderPoint: 50, unitCost: 899, value: 220255, location: 'Warehouse A', status: 'in-stock', supplier: 'TechCorp Inc' },
-    { id: 2, sku: 'PROD-002', name: 'Office Chair Ergonomic', category: 'Furniture', quantity: 89, reorderPoint: 100, unitCost: 299, value: 26611, location: 'Warehouse B', status: 'low-stock', supplier: 'FurniturePlus' },
-    { id: 3, sku: 'PROD-003', name: 'Wireless Mouse', category: 'Electronics', quantity: 567, reorderPoint: 200, unitCost: 45, value: 25515, location: 'Warehouse A', status: 'in-stock', supplier: 'TechCorp Inc' },
-    { id: 4, sku: 'PROD-004', name: 'Standing Desk', category: 'Furniture', quantity: 12, reorderPoint: 25, unitCost: 599, value: 7188, location: 'Warehouse C', status: 'critical', supplier: 'FurniturePlus' },
-    { id: 5, sku: 'PROD-005', name: 'Monitor 27" 4K', category: 'Electronics', quantity: 156, reorderPoint: 75, unitCost: 449, value: 70044, location: 'Warehouse A', status: 'in-stock', supplier: 'DisplayTech' },
-  ]
+  // Data from shared database
+  const products = useCollection<Product>('products')
+  const inventoryItems = useCollection<InventoryItem>('inventory')
+  const financials = useCollection<FinancialAccount>('financialAccounts')
+  const employees = useCollection<Employee>('employees')
+  const projects = useCollection<Project>('projects')
+  const suppliers = useCollection<Supplier>('suppliers')
 
-  const financials = [
-    { id: 1, account: 'Accounts Receivable', type: 'Asset', balance: 1450000, change: 5.2, trend: 'up', department: 'Sales' },
-    { id: 2, account: 'Accounts Payable', type: 'Liability', balance: 890000, change: -2.1, trend: 'down', department: 'Procurement' },
-    { id: 3, account: 'Cash & Equivalents', type: 'Asset', balance: 2340000, change: 12.4, trend: 'up', department: 'Finance' },
-    { id: 4, account: 'Inventory', type: 'Asset', balance: 845000, change: 3.8, trend: 'up', department: 'Operations' },
-    { id: 5, account: 'Revenue', type: 'Revenue', balance: 6780000, change: 18.5, trend: 'up', department: 'Sales' },
-  ]
+  // Enrich inventory with product and supplier data
+  const inventory = inventoryItems.map(item => {
+    const product = products.find(p => p.id === item.productId)
+    return {
+      ...item,
+      sku: product?.sku || '',
+      name: product?.name || '',
+      category: product?.category || '',
+      unitCost: product?.unitCost || 0,
+      value: (product?.unitCost || 0) * item.quantity,
+      supplier: product?.supplierName || '',
+    }
+  })
 
-  const employees = [
-    { id: 1, name: 'John Smith', department: 'Engineering', position: 'Senior Developer', salary: 95000, status: 'active', hireDate: '2022-03-15', manager: 'Sarah Johnson', performance: 4.5 },
-    { id: 2, name: 'Sarah Johnson', department: 'Engineering', position: 'Engineering Manager', salary: 125000, status: 'active', hireDate: '2021-01-10', manager: 'Mike Wilson', performance: 4.8 },
-    { id: 3, name: 'Mike Wilson', department: 'Operations', position: 'Operations Director', salary: 145000, status: 'active', hireDate: '2020-06-01', manager: 'CEO', performance: 4.6 },
-    { id: 4, name: 'Emily Chen', department: 'Finance', position: 'Financial Analyst', salary: 75000, status: 'active', hireDate: '2023-01-20', manager: 'David Brown', performance: 4.2 },
-    { id: 5, name: 'David Brown', department: 'Finance', position: 'Finance Manager', salary: 110000, status: 'active', hireDate: '2021-09-15', manager: 'CFO', performance: 4.7 },
-  ]
+  // Enrich projects with manager names
+  const enrichedProjects = projects.map(project => {
+    const manager = employees.find(e => e.id === project.managerId)
+    return {
+      ...project,
+      manager: manager?.name || 'Unassigned',
+      team: project.teamSize,
+    }
+  })
 
-  const projects = [
-    { id: 1, name: 'ERP System Upgrade', status: 'in-progress', progress: 65, budget: 250000, spent: 162500, manager: 'Sarah Johnson', startDate: '2024-01-01', endDate: '2024-06-30', team: 8 },
-    { id: 2, name: 'Website Redesign', status: 'planning', progress: 15, budget: 75000, spent: 11250, manager: 'Mike Wilson', startDate: '2024-02-01', endDate: '2024-04-30', team: 4 },
-    { id: 3, name: 'Mobile App Development', status: 'in-progress', progress: 40, budget: 180000, spent: 72000, manager: 'John Smith', startDate: '2024-01-15', endDate: '2024-05-15', team: 6 },
-    { id: 4, name: 'Cloud Migration', status: 'completed', progress: 100, budget: 320000, spent: 298000, manager: 'Sarah Johnson', startDate: '2023-09-01', endDate: '2023-12-31', team: 10 },
-  ]
+  // Enrich employees with manager names
+  const enrichedEmployees = employees.map(emp => {
+    const manager = emp.managerId ? employees.find(e => e.id === emp.managerId) : null
+    return {
+      ...emp,
+      manager: manager?.name || 'CEO',
+    }
+  })
 
   const getStatusColor = (status: string) => {
     const colors: { [key: string]: string } = {
@@ -75,6 +86,9 @@ export function ERPSection() {
     const matchesStatus = filterStatus === 'all' || item.status === filterStatus
     return matchesSearch && matchesStatus
   })
+
+  // Aggregated stats from database
+  const stats = db.getAggregatedStats()
 
   return (
     <div style={{ display: 'flex', height: '100vh', background: '#f8fafc' }}>
@@ -188,10 +202,10 @@ export function ERPSection() {
               {/* KPI Cards */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
                 {[
-                  { label: 'Total Revenue', value: '$6.78M', change: '+18.5%', trend: 'up' },
-                  { label: 'Inventory Value', value: '$845K', change: '+3.8%', trend: 'up' },
-                  { label: 'Active Projects', value: '12', change: '+2', trend: 'up' },
-                  { label: 'Employees', value: '247', change: '+5.2%', trend: 'up' },
+                  { label: 'Total Revenue', value: `$${(stats.erp.totalRevenue / 1000000).toFixed(2)}M`, change: '+18.5%', trend: 'up' },
+                  { label: 'Inventory Value', value: `$${(stats.erp.inventoryValue / 1000).toFixed(0)}K`, change: '+3.8%', trend: 'up' },
+                  { label: 'Active Projects', value: stats.erp.activeProjects.toString(), change: '+2', trend: 'up' },
+                  { label: 'Employees', value: stats.erp.employeeCount.toString(), change: '+5.2%', trend: 'up' },
                 ].map((kpi, i) => (
                   <div key={i} style={{
                     background: '#ffffff',
@@ -704,7 +718,7 @@ export function ERPSection() {
                     </tr>
                   </thead>
                   <tbody>
-                    {employees.map(employee => (
+                    {enrichedEmployees.map(employee => (
                       <tr
                         key={employee.id}
                         style={{
@@ -734,7 +748,7 @@ export function ERPSection() {
                               fontWeight: '600',
                               fontSize: '12px'
                             }}>
-                              {employee.name.split(' ').map(n => n[0]).join('')}
+                              {employee.avatar}
                             </div>
                             <div>
                               <div style={{ fontSize: '14px', fontWeight: '500', color: '#1a1f36' }}>{employee.name}</div>
@@ -819,7 +833,7 @@ export function ERPSection() {
 
               {/* Project Cards */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '20px' }}>
-                {projects.map(project => (
+                {enrichedProjects.map(project => (
                   <div key={project.id} style={{
                     background: '#ffffff',
                     padding: '24px',
@@ -877,7 +891,7 @@ export function ERPSection() {
                     </div>
                     
                     <div style={{ marginTop: '12px', fontSize: '12px', color: '#6b7280' }}>
-                      <strong>Team:</strong> {project.team} members
+                      <strong>Team:</strong> {project.teamSize} members
                     </div>
                   </div>
                 ))}

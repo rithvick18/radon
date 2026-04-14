@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import Plot from 'react-plotly.js'
 import { SiteFooter, MinimalNav } from './Components'
+import { useCollection, db } from './src/Services/useDatabase'
+import type { Lead, Activity, Customer, Contact, Employee } from './src/Services/DatabaseTypes'
 
 /* ══════════════════════════════════════
    SALESFORCE/ZOHO-STYLE CRM
@@ -22,23 +24,42 @@ export function CRMSection() {
     ...extra
   });
 
-  // Sample data
-  const leads = [
-    { id: 1, name: 'Acme Corporation', value: 125000, stage: 'qualification', probability: 25, owner: 'John Smith', created: '2024-01-15', contact: 'Sarah Johnson', email: 'sarah@acme.com', phone: '555-0123', industry: 'Technology', size: 'Enterprise' },
-    { id: 2, name: 'Global Industries', value: 85000, stage: 'proposal', probability: 75, owner: 'Jane Doe', created: '2024-01-12', contact: 'Mike Wilson', email: 'mike@global.com', phone: '555-0124', industry: 'Manufacturing', size: 'Mid-Market' },
-    { id: 3, name: 'Tech Solutions Inc', value: 240000, stage: 'negotiation', probability: 90, owner: 'John Smith', created: '2024-01-10', contact: 'Lisa Chen', email: 'lisa@techsolutions.com', phone: '555-0125', industry: 'Software', size: 'Enterprise' },
-    { id: 4, name: 'Innovation Labs', value: 45000, stage: 'discovery', probability: 15, owner: 'Bob Johnson', created: '2024-01-08', contact: 'Tom Davis', email: 'tom@innovation.com', phone: '555-0126', industry: 'Healthcare', size: 'Small' },
-    { id: 5, name: 'Enterprise Systems', value: 180000, stage: 'closed-won', probability: 100, owner: 'Jane Doe', created: '2024-01-05', contact: 'Rachel Green', email: 'rachel@enterprise.com', phone: '555-0127', industry: 'Finance', size: 'Enterprise' },
-  ]
+  // Data from shared database
+  const leads = useCollection<Lead>('leads')
+  const dbActivities = useCollection<Activity>('activities')
+  const customers = useCollection<Customer>('customers')
+  const contacts = useCollection<Contact>('contacts')
+  const employees = useCollection<Employee>('employees')
 
-  const activities = [
-    { id: 1, type: 'call', title: 'Discovery Call with Acme Corp', lead: 'Acme Corporation', date: '2024-01-20', time: '10:00 AM', duration: '45 min', notes: 'Great initial conversation, they have budget and timeline' },
-    { id: 2, type: 'email', title: 'Proposal sent to Global Industries', lead: 'Global Industries', date: '2024-01-19', time: '2:30 PM', duration: '-', notes: 'Custom pricing proposal sent, follow up scheduled' },
-    { id: 3, type: 'meeting', title: 'Demo with Tech Solutions', lead: 'Tech Solutions Inc', date: '2024-01-18', time: '3:00 PM', duration: '1 hour', notes: 'Product demo went well, technical team impressed' },
-    { id: 4, type: 'task', title: 'Prepare contract for Innovation Labs', lead: 'Innovation Labs', date: '2024-01-17', time: '9:00 AM', duration: '-', notes: 'Legal team reviewing terms' },
-  ]
+  // Enrich leads with customer, contact, and owner data
+  const enrichedLeads = leads.map(lead => {
+    const customer = customers.find(c => c.id === lead.customerId)
+    const contact = contacts.find(c => c.id === lead.contactId)
+    const owner = employees.find(e => e.id === lead.ownerId)
+    return {
+      ...lead,
+      name: customer?.name || 'Unknown',
+      industry: customer?.industry || '',
+      size: customer?.size || '',
+      contact: contact?.name || '',
+      email: contact?.email || '',
+      phone: contact?.phone || '',
+      owner: owner?.name || '',
+      created: lead.createdAt,
+    }
+  })
 
-  const filteredLeads = leads.filter(lead => {
+  // Enrich activities with lead names
+  const activities = dbActivities.map(act => {
+    const lead = leads.find(l => l.id === act.leadId)
+    const customer = lead ? customers.find(c => c.id === lead.customerId) : null
+    return {
+      ...act,
+      lead: customer?.name || '',
+    }
+  })
+
+  const filteredLeads = enrichedLeads.filter(lead => {
     const matchesSearch = lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          lead.contact.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStage = filterStage === 'all' || lead.stage === filterStage
@@ -175,10 +196,10 @@ export function CRMSection() {
               {/* KPI Cards */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
                 {[
-                  { label: 'Total Pipeline', value: '$675K', change: '+12%', trend: 'up' },
-                  { label: 'New Leads', value: '24', change: '+8%', trend: 'up' },
-                  { label: 'Conversion Rate', value: '32%', change: '-2%', trend: 'down' },
-                  { label: 'Avg Deal Size', value: '$45K', change: '+5%', trend: 'up' },
+                  { label: 'Total Pipeline', value: `$${(db.getTotalPipelineValue() / 1000).toFixed(0)}K`, change: '+12%', trend: 'up' },
+                  { label: 'New Leads', value: leads.length.toString(), change: '+8%', trend: 'up' },
+                  { label: 'Win Rate', value: `${(db.getWinRate() * 100).toFixed(0)}%`, change: '+5%', trend: 'up' },
+                  { label: 'Avg Deal Size', value: `$${leads.length > 0 ? ((leads.reduce((s, l) => s + l.value, 0) / leads.length) / 1000).toFixed(0) : 0}K`, change: '+5%', trend: 'up' },
                 ].map((kpi, i) => (
                   <div key={i} style={{
                     background: '#ffffff',
@@ -424,8 +445,10 @@ export function CRMSection() {
             }}>
               <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a1f36', marginBottom: '16px' }}>Contact Management</h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
-                {leads.map(lead => (
-                  <div key={lead.id} style={{
+                {contacts.map(contact => {
+                  const customer = customers.find(c => c.id === contact.customerId)
+                  return (
+                  <div key={contact.id} style={{
                     padding: '16px',
                     border: '1px solid #e5e7eb',
                     borderRadius: '8px',
@@ -444,20 +467,21 @@ export function CRMSection() {
                         fontWeight: '600',
                         fontSize: '16px'
                       }}>
-                        {lead.contact.split(' ').map(n => n[0]).join('')}
+                        {contact.avatar}
                       </div>
                       <div>
-                        <div style={{ fontSize: '14px', fontWeight: '600', color: '#1a1f36' }}>{lead.contact}</div>
-                        <div style={{ fontSize: '12px', color: '#6b7280' }}>{lead.name}</div>
+                        <div style={{ fontSize: '14px', fontWeight: '600', color: '#1a1f36' }}>{contact.name}</div>
+                        <div style={{ fontSize: '12px', color: '#6b7280' }}>{customer?.name || ''}</div>
                       </div>
                     </div>
                     <div style={{ fontSize: '12px', color: '#6b7280', lineHeight: '1.5' }}>
-                      <div>📧 {lead.email}</div>
-                      <div>📞 {lead.phone}</div>
-                      <div>🏢 {lead.industry}</div>
+                      <div>📧 {contact.email}</div>
+                      <div>📞 {contact.phone}</div>
+                      <div>🏢 {customer?.industry || ''}</div>
                     </div>
                   </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           )}
@@ -473,7 +497,7 @@ export function CRMSection() {
             }}>
               <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a1f36', marginBottom: '16px' }}>Account Management</h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px' }}>
-                {leads.map(lead => (
+                {enrichedLeads.map(lead => (
                   <div key={lead.id} style={{
                     padding: '20px',
                     border: '1px solid #e5e7eb',

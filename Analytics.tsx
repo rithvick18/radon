@@ -3,6 +3,8 @@ import Plot from 'react-plotly.js'
 import { SiteFooter, MinimalNav } from './Components'
 import * as XLSX from 'xlsx'
 import Papa from 'papaparse'
+import { useCollection, db } from './src/Services/useDatabase'
+import type { Dataset, Transaction } from './src/Services/DatabaseTypes'
 
 /* ========================================
    POWERBI-STYLE BUSINESS INTELLIGENCE
@@ -11,38 +13,27 @@ import Papa from 'papaparse'
 export function AnalyticsSection() {
   const [activeView, setActiveView] = useState('dashboard')
   const [selectedDataset, setSelectedDataset] = useState<any>(null)
-  const [datasets, setDatasets] = useState<any[]>([
-    {
-      id: 1,
-      name: 'Sales Data 2024',
-      rows: 15420,
-      columns: 12,
-      size: '2.4 MB',
-      lastModified: '2024-03-15',
-      type: 'Excel',
-      tables: ['Sales', 'Products', 'Customers', 'Regions']
-    },
-    {
-      id: 2,
-      name: 'Financial Metrics',
-      rows: 8920,
-      columns: 8,
-      size: '1.1 MB',
-      lastModified: '2024-03-14',
-      type: 'CSV',
-      tables: ['Revenue', 'Expenses', 'Profit']
-    },
-    {
-      id: 3,
-      name: 'Customer Analytics',
-      rows: 25680,
-      columns: 15,
-      size: '3.8 MB',
-      lastModified: '2024-03-13',
-      type: 'Database',
-      tables: ['Customers', 'Orders', 'Segments']
-    }
-  ])
+  // Data from shared database
+  const dbDatasets = useCollection<Dataset>('datasets')
+  const transactions = useCollection<Transaction>('transactions')
+  const stats = db.getAggregatedStats()
+
+  const [datasets, setDatasets] = useState<any[]>([])
+
+  // Sync database datasets to local state
+  useEffect(() => {
+    setDatasets(dbDatasets.map(ds => ({
+      id: ds.id,
+      name: ds.name,
+      rows: ds.rows,
+      columns: ds.columns,
+      size: ds.size,
+      lastModified: ds.lastModified,
+      type: ds.type,
+      tables: ds.tables,
+      source: ds.source,
+    })))
+  }, [dbDatasets])
   const [dashboardItems, setDashboardItems] = useState<any[]>([
     {
       id: 1,
