@@ -256,7 +256,7 @@ function LoginPage({ onLogin }: LoginPageProps) {
         <div className="lg-orb lg-orb3"></div>
         <div className="lg-brand">
           <div className="lg-logo"><span className="lg-logo-inner glitch">RADON</span></div>
-          <div className="lg-tagline">Intelligence OS — v3.0.0</div>
+          <div className="lg-tagline">Intelligence — v1.0</div>
         </div>
         <div className="lg-center">
           <div className="lg-big">
@@ -343,7 +343,7 @@ function LoginPage({ onLogin }: LoginPageProps) {
               <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
               256-bit AES encrypted
             </div>
-            <div className="form-version">RADON OS v3.0.0</div>
+            <div className="form-version">Radon Intelligence v3.0.0</div>
           </div>
         </div>
       </div>
@@ -396,7 +396,7 @@ function LoaderPage({ onDone }: LoaderPageProps) {
     <div id="page-loader" className="active">
       <div className="ld-scan-bar" ref={scanRef}></div>
       <div className="ld-logo"><div className="ld-logo-inner" ref={logoRef}>RADON</div></div>
-      <div className="ld-sub"><div className="ld-sub-inner" ref={subRef}>INTELLIGENCE OS — INITIALISING</div></div>
+      <div className="ld-sub"><div className="ld-sub-inner" ref={subRef}>INTELLIGENCE — INITIALISING</div></div>
       <div className="ld-bar"><div className="ld-fill" ref={fillRef}></div></div>
       <div className="ld-pct" ref={pctRef}>0%</div>
       <div className="ld-lines" style={{ position: 'relative', marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '.25rem' }}>
@@ -870,7 +870,7 @@ function MainPage({ onLogout, onNavigate, onOpenCommandDeck, disableAmbientEffec
           <li><a href="#" onClick={e => { e.preventDefault(); onNavigate('neoguard') }}>NeoGuard</a></li>
           <li><a href="#" onClick={e => { e.preventDefault(); onNavigate('ai-agent') }}>AI Agent</a></li>
         </ul>
-        <div className="n-right">
+        <div className="n-right" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <button className="n-command" onClick={onOpenCommandDeck}><span>Mission Control</span><span className="n-command-key">Ctrl+K</span></button>
           <div className="n-news">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--muted)" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -994,7 +994,7 @@ function MainPage({ onLogout, onNavigate, onOpenCommandDeck, disableAmbientEffec
                 <div className="chrome-dot" style={{ background: '#f87171' }}></div>
                 <div className="chrome-dot" style={{ background: '#fbbf24' }}></div>
                 <div className="chrome-dot" style={{ background: '#34d399' }}></div>
-                <div className="chrome-title">RADON OS — v3.0.0 — Operations Overview</div>
+                <div className="chrome-title">Radon Intelligence — v3.0.0 — Operations Overview</div>
                 <div className="chrome-title" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '5px' }}><div className="live-dot"></div>LIVE</div>
               </div>
               <div className="dash-body">

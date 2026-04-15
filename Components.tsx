@@ -78,7 +78,7 @@ export function MinimalNav({ onNavigate, onLogout, active }: any) {
           </li>
         ))}
       </ul>
-      <div className="n-right">
+      <div className="n-right" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
         <div style={{
           fontFamily: '"Space Mono", monospace',
           fontSize: '.52rem',

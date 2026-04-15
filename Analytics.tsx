@@ -13,6 +13,15 @@ import type { Dataset, Transaction } from './src/Services/DatabaseTypes'
 export function AnalyticsSection() {
   const [activeView, setActiveView] = useState('dashboard')
   const [selectedDataset, setSelectedDataset] = useState<any>(null)
+  const [showRefreshModal, setShowRefreshModal] = useState(false)
+  const [showNewModal, setShowNewModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [showFullscreen, setShowFullscreen] = useState(false)
+  const [showAddDatasetModal, setShowAddDatasetModal] = useState(false)
+  const [showNewMeasureModal, setShowNewMeasureModal] = useState(false)
+  const [showAIModal, setShowAIModal] = useState(false)
+  const [aiToolType, setAiToolType] = useState('')
+  const [newModalType, setNewModalType] = useState('')
   // Data from shared database
   const dbDatasets = useCollection<Dataset>('datasets')
   const transactions = useCollection<Transaction>('transactions')
@@ -81,22 +90,22 @@ export function AnalyticsSection() {
   const biLayout = (t: string, extra={}) => ({
     title: { 
       text: t, 
-      font: { color: '#1a1f36', size: 14, family: "'Segoe UI', sans-serif", weight: 600 },
+      font: { color: 'var(--text)', size: 14, family: "'Inter', sans-serif", weight: 600 },
       x: 0,
       y: 0.95
     },
-    paper_bgcolor: '#ffffff',
-    plot_bgcolor: '#ffffff',
-    font: { family: "'Segoe UI', sans-serif", color: '#4a5568', size: 11 },
+    paper_bgcolor: 'var(--s1)',
+    plot_bgcolor: 'var(--s1)',
+    font: { family: "'Inter', sans-serif", color: '#4a5568', size: 11 },
     margin: { t: 50, r: 30, l: 50, b: 40 },
     xaxis: { 
-      gridcolor: '#f0f0f0', 
-      zerolinecolor: '#e0e0e0',
+      gridcolor: 'rgba(96,165,250,0.1)', 
+      zerolinecolor: 'rgba(96,165,250,0.2)',
       tickfont: { color: '#666' }
     },
     yaxis: { 
-      gridcolor: '#f0f0f0', 
-      zerolinecolor: '#e0e0e0',
+      gridcolor: 'rgba(96,165,250,0.1)', 
+      zerolinecolor: 'rgba(96,165,250,0.2)',
       tickfont: { color: '#666' }
     },
     hovermode: 'closest' as any,
@@ -104,22 +113,22 @@ export function AnalyticsSection() {
   });
 
   return (
-    <div style={{ display: 'flex', height: '100vh', background: '#f8fafc' }}>
+    <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)' }}>
       {/* BI Tool Sidebar */}
-      <div style={{ width: '280px', background: '#2d3748', color: '#ffffff', padding: '20px 0', overflow: 'auto' }}>
+      <div style={{ width: '280px', background: 'var(--s1)', color: 'var(--text)', padding: '20px 0', borderRight: '1px solid rgba(96,165,250,0.06)', overflow: 'auto' }}>
         <div style={{ padding: '0 20px', marginBottom: '30px' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: '600', margin: 0, color: '#ffffff' }}>Radon BI</h2>
-          <p style={{ fontSize: '12px', color: '#a0aec0', margin: '4px 0 0 0' }}>Business Intelligence</p>
+          <h2 style={{ fontSize: '20px', fontWeight: '600', margin: 0, color: 'var(--text)' }}>Radon BI</h2>
+          <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '4px 0 0 0' }}>Business Intelligence</p>
         </div>
         
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
           {[
-            { id: 'dashboard', label: 'Dashboard', icon: '??' },
-            { id: 'datasets', label: 'Datasets', icon: '??' },
-            { id: 'modeling', label: 'Data Modeling', icon: '??' },
-            { id: 'reports', label: 'Reports', icon: '??' },
-            { id: 'measures', label: 'Measures', icon: '??' },
-            { id: 'ai-tools', label: 'AI Tools', icon: '??' },
+            { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+            { id: 'datasets', label: 'Datasets', icon: '📁' },
+            { id: 'modeling', label: 'Data Modeling', icon: '🔗' },
+            { id: 'reports', label: 'Reports', icon: '📄' },
+            { id: 'measures', label: 'Measures', icon: '📏' },
+            { id: 'ai-tools', label: 'AI Tools', icon: '🤖' },
           ].map(item => (
             <button
               key={item.id}
@@ -129,9 +138,9 @@ export function AnalyticsSection() {
                 alignItems: 'center',
                 gap: '12px',
                 padding: '12px 20px',
-                background: activeView === item.id ? '#4299e1' : 'transparent',
+                background: activeView === item.id ? 'var(--elec)' : 'transparent',
                 border: 'none',
-                color: '#ffffff',
+                color: 'var(--text)',
                 fontSize: '14px',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
@@ -139,7 +148,7 @@ export function AnalyticsSection() {
               }}
               onMouseEnter={(e) => {
                 if (activeView !== item.id) {
-                  e.currentTarget.style.background = '#4a5568'
+                  e.currentTarget.style.background = 'var(--s2)'
                 }
               }}
               onMouseLeave={(e) => {
@@ -158,9 +167,9 @@ export function AnalyticsSection() {
       {/* Main Content Area */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Top Header */}
-        <div style={{ background: '#ffffff', borderBottom: '1px solid #e2e8f0', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ background: 'var(--s1)', borderBottom: '1px solid rgba(96,165,250,0.06)', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h1 style={{ fontSize: '24px', fontWeight: '600', color: '#1a202c', margin: 0 }}>
+            <h1 style={{ fontSize: '24px', fontWeight: '600', color: 'var(--text)', margin: 0 }}>
               {activeView === 'dashboard' && 'Dashboard'}
               {activeView === 'datasets' && 'Datasets'}
               {activeView === 'modeling' && 'Data Modeling'}
@@ -168,29 +177,43 @@ export function AnalyticsSection() {
               {activeView === 'measures' && 'Measures'}
               {activeView === 'ai-tools' && 'AI Tools'}
             </h1>
-            <p style={{ fontSize: '14px', color: '#718096', margin: '4px 0 0 0' }}>Business intelligence and analytics</p>
+            <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '4px 0 0 0' }}>Business intelligence and analytics</p>
           </div>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <button style={{
-              padding: '8px 16px',
-              background: '#ffffff',
-              border: '1px solid #cbd5e0',
-              borderRadius: '6px',
-              color: '#4a5568',
-              fontSize: '14px',
-              cursor: 'pointer'
-            }}>
-              ?? Refresh
+            <button 
+              onClick={() => {
+                setShowRefreshModal(true)
+                setTimeout(() => setShowRefreshModal(false), 2000)
+              }}
+              style={{
+                padding: '8px 16px',
+                background: 'var(--s2)',
+                border: '1px solid rgba(96,165,250,0.15)',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--text)',
+                fontSize: '14px',
+                cursor: 'pointer'
+              }}
+            >
+              🔄 Refresh
             </button>
-            <button style={{
-              padding: '8px 16px',
-              background: '#4299e1',
-              border: 'none',
-              borderRadius: '6px',
-              color: '#ffffff',
-              fontSize: '14px',
-              cursor: 'pointer'
-            }}>
+            <button 
+              onClick={() => {
+                setNewModalType(activeView === 'datasets' ? 'dataset' : 
+                              activeView === 'measures' ? 'measure' : 
+                              activeView === 'reports' ? 'report' : 'dashboard')
+                setShowNewModal(true)
+              }}
+              style={{
+                padding: '8px 16px',
+                background: 'var(--elec)',
+                border: 'none',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--bg)',
+                fontSize: '14px',
+                cursor: 'pointer'
+              }}
+            >
               + New
             </button>
           </div>
@@ -210,14 +233,14 @@ export function AnalyticsSection() {
                   { title: 'Avg Order Value', value: '$272', change: '-1.2%', trend: 'down' },
                 ].map((kpi, i) => (
                   <div key={i} style={{
-                    background: '#ffffff',
+                    background: 'var(--s1)',
                     padding: '20px',
-                    borderRadius: '8px',
-                    border: '1px solid #e2e8f0',
-                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid rgba(96,165,250,0.06)',
+                    boxShadow: 'var(--shadow-elevated)'
                   }}>
-                    <div style={{ fontSize: '14px', color: '#718096', marginBottom: '8px' }}>{kpi.title}</div>
-                    <div style={{ fontSize: '28px', fontWeight: '600', color: '#1a202c', marginBottom: '8px' }}>{kpi.value}</div>
+                    <div style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '8px' }}>{kpi.title}</div>
+                    <div style={{ fontSize: '28px', fontWeight: '600', color: 'var(--text)', marginBottom: '8px' }}>{kpi.value}</div>
                     <div style={{
                       fontSize: '12px',
                       color: kpi.trend === 'up' ? '#38a169' : '#e53e3e',
@@ -225,7 +248,7 @@ export function AnalyticsSection() {
                       alignItems: 'center',
                       gap: '4px'
                     }}>
-                      {kpi.trend === 'up' ? '??' : '??'} {kpi.change} from last period
+                      {kpi.trend === 'up' ? '↑' : '↓'} {kpi.change} from last period
                     </div>
                   </div>
                 ))}
@@ -233,33 +256,40 @@ export function AnalyticsSection() {
 
               {/* Main Dashboard Grid */}
               <div style={{
-                background: '#ffffff',
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0',
+                background: 'var(--s1)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid rgba(96,165,250,0.06)',
                 padding: '24px',
-                minHeight: '600px'
+                minHeight: '600px',
+                boxShadow: 'var(--shadow-elevated)'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a202c', margin: 0 }}>Interactive Dashboard</h3>
+                  <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text)', margin: 0 }}>Interactive Dashboard</h3>
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <button style={{
-                      padding: '6px 12px',
-                      background: '#f7fafc',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      cursor: 'pointer'
-                    }}>
+                    <button 
+                      onClick={() => setShowEditModal(true)}
+                      style={{
+                        padding: '6px 12px',
+                        background: 'var(--s2)',
+                        border: '1px solid rgba(96,165,250,0.15)',
+                        borderRadius: 'var(--radius-sm)',
+                        fontSize: '12px',
+                        cursor: 'pointer'
+                      }}
+                    >
                       Edit
                     </button>
-                    <button style={{
-                      padding: '6px 12px',
-                      background: '#f7fafc',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      cursor: 'pointer'
-                    }}>
+                    <button 
+                      onClick={() => setShowFullscreen(true)}
+                      style={{
+                        padding: '6px 12px',
+                        background: 'var(--s2)',
+                        border: '1px solid rgba(96,165,250,0.15)',
+                        borderRadius: 'var(--radius-sm)',
+                        fontSize: '12px',
+                        cursor: 'pointer'
+                      }}
+                    >
                       Full Screen
                     </button>
                   </div>
@@ -279,9 +309,9 @@ export function AnalyticsSection() {
                       style={{
                         gridColumn: `${item.position.x + 1} / span ${item.position.w}`,
                         gridRow: `${item.position.y + 1} / span ${item.position.h}`,
-                        background: '#f8fafc',
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '6px',
+                        background: 'var(--s2)',
+                        border: '1px solid rgba(96,165,250,0.06)',
+                        borderRadius: 'var(--radius-sm)',
                         padding: '16px',
                         cursor: 'move'
                       }}
@@ -293,9 +323,9 @@ export function AnalyticsSection() {
                     >
                       {item.type === 'kpi' && (
                         <div>
-                          <div style={{ fontSize: '12px', color: '#718096', marginBottom: '8px' }}>{item.title}</div>
-                          <div style={{ fontSize: '24px', fontWeight: '600', color: '#1a202c' }}>{item.value}</div>
-                          <div style={{ fontSize: '12px', color: '#38a169' }}>{item.change}</div>
+                          <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px' }}>{item.title}</div>
+                          <div style={{ fontSize: '24px', fontWeight: '600', color: 'var(--text)' }}>{item.value}</div>
+                          <div style={{ fontSize: '12px', color: '#10b981' }}>{item.change}</div>
                         </div>
                       )}
                       {item.type === 'chart' && (
@@ -312,7 +342,7 @@ export function AnalyticsSection() {
                       )}
                       {item.type === 'table' && (
                         <div>
-                          <div style={{ fontSize: '12px', color: '#718096', marginBottom: '8px' }}>{item.title}</div>
+                          <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px' }}>{item.title}</div>
                           <div style={{ fontSize: '11px', color: '#4a5568' }}>
                             <div>Product A: $45,200</div>
                             <div>Product B: $38,100</div>
@@ -331,22 +361,26 @@ export function AnalyticsSection() {
           {activeView === 'datasets' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               <div style={{
-                background: '#ffffff',
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0',
-                padding: '24px'
+                background: 'var(--s1)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid rgba(96,165,250,0.06)',
+                padding: '24px',
+                boxShadow: 'var(--shadow-elevated)'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a202c', margin: 0 }}>Data Sources</h3>
-                  <button style={{
-                    padding: '8px 16px',
-                    background: '#4299e1',
-                    border: 'none',
-                    borderRadius: '6px',
-                    color: '#ffffff',
-                    fontSize: '14px',
-                    cursor: 'pointer'
-                  }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text)', margin: 0 }}>Data Sources</h3>
+                  <button 
+                    onClick={() => setShowAddDatasetModal(true)}
+                    style={{
+                      padding: '8px 16px',
+                      background: '#4299e1',
+                      border: 'none',
+                      borderRadius: '6px',
+                      color: '#ffffff',
+                      fontSize: '14px',
+                      cursor: 'pointer'
+                    }}
+                  >
                     + Add Dataset
                   </button>
                 </div>
@@ -360,9 +394,9 @@ export function AnalyticsSection() {
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         padding: '16px',
-                        background: '#f8fafc',
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '6px',
+                        background: 'var(--s2)',
+                        border: '1px solid rgba(96,165,250,0.06)',
+                        borderRadius: 'var(--radius-sm)',
                         cursor: 'pointer'
                       }}
                       onClick={() => setSelectedDataset(dataset)}
@@ -383,19 +417,19 @@ export function AnalyticsSection() {
                           {dataset.type.charAt(0)}
                         </div>
                         <div>
-                          <div style={{ fontSize: '16px', fontWeight: '600', color: '#1a202c' }}>{dataset.name}</div>
-                          <div style={{ fontSize: '12px', color: '#718096' }}>
-                            {dataset.rows.toLocaleString()} rows ?? {dataset.columns} columns ?? {dataset.size}
+                          <div style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text)' }}>{dataset.name}</div>
+                          <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
+                            {dataset.rows.toLocaleString()} rows • {dataset.columns} columns • {dataset.size}
                           </div>
                         </div>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{ fontSize: '12px', color: '#718096' }}>Modified: {dataset.lastModified}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--muted)' }}>Modified: {dataset.lastModified}</div>
                         <button style={{
                           padding: '6px 12px',
-                          background: '#f7fafc',
-                          border: '1px solid #e2e8f0',
-                          borderRadius: '4px',
+                          background: 'var(--s2)',
+                          border: '1px solid rgba(96,165,250,0.15)',
+                          borderRadius: 'var(--radius-sm)',
                           fontSize: '12px',
                           cursor: 'pointer'
                         }}>
@@ -413,46 +447,47 @@ export function AnalyticsSection() {
           {activeView === 'modeling' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               <div style={{
-                background: '#ffffff',
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0',
-                padding: '24px'
+                background: 'var(--s1)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid rgba(96,165,250,0.06)',
+                padding: '24px',
+                boxShadow: 'var(--shadow-elevated)'
               }}>
-                <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a202c', margin: 0, marginBottom: '20px' }}>Data Model Relationships</h3>
+                <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text)', margin: 0, marginBottom: '20px' }}>Data Model Relationships</h3>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                   <div>
-                    <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#4a5568', marginBottom: '12px' }}>Tables</h4>
+                    <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--muted)', marginBottom: '12px' }}>Tables</h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {['Sales', 'Products', 'Customers', 'Regions', 'Calendar'].map(table => (
                         <div key={table} style={{
                           padding: '12px',
-                          background: '#f8fafc',
-                          border: '1px solid #e2e8f0',
-                          borderRadius: '6px',
+                          background: 'var(--s2)',
+                          border: '1px solid rgba(96,165,250,0.06)',
+                          borderRadius: 'var(--radius-sm)',
                           fontSize: '14px',
-                          color: '#1a202c'
+                          color: 'var(--text)'
                         }}>
-                          ?? {table}
+                          📋 {table}
                         </div>
                       ))}
                     </div>
                   </div>
                   
                   <div>
-                    <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#4a5568', marginBottom: '12px' }}>Relationships</h4>
+                    <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--muted)', marginBottom: '12px' }}>Relationships</h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {relationships.map((rel, i) => (
                         <div key={i} style={{
                           padding: '12px',
-                          background: '#f8fafc',
-                          border: '1px solid #e2e8f0',
-                          borderRadius: '6px',
+                          background: 'var(--s2)',
+                          border: '1px solid rgba(96,165,250,0.06)',
+                          borderRadius: 'var(--radius-sm)',
                           fontSize: '12px',
                           color: '#4a5568'
                         }}>
                           <div>{rel.from}</div>
-                          <div style={{ color: '#4299e1' }}>?? {rel.type}</div>
+                          <div style={{ color: '#4299e1' }}>↔ {rel.type}</div>
                           <div>{rel.to}</div>
                         </div>
                       ))}
@@ -467,22 +502,26 @@ export function AnalyticsSection() {
           {activeView === 'measures' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               <div style={{
-                background: '#ffffff',
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0',
-                padding: '24px'
+                background: 'var(--s1)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid rgba(96,165,250,0.06)',
+                padding: '24px',
+                boxShadow: 'var(--shadow-elevated)'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a202c', margin: 0 }}>DAX Measures</h3>
-                  <button style={{
-                    padding: '8px 16px',
-                    background: '#4299e1',
-                    border: 'none',
-                    borderRadius: '6px',
-                    color: '#ffffff',
-                    fontSize: '14px',
-                    cursor: 'pointer'
-                  }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text)', margin: 0 }}>DAX Measures</h3>
+                  <button 
+                    onClick={() => setShowNewMeasureModal(true)}
+                    style={{
+                      padding: '8px 16px',
+                      background: '#4299e1',
+                      border: 'none',
+                      borderRadius: '6px',
+                      color: '#ffffff',
+                      fontSize: '14px',
+                      cursor: 'pointer'
+                    }}
+                  >
                     + New Measure
                   </button>
                 </div>
@@ -491,18 +530,18 @@ export function AnalyticsSection() {
                   {measures.map((measure, i) => (
                     <div key={i} style={{
                       padding: '16px',
-                      background: '#f8fafc',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '6px'
+                      background: 'var(--s2)',
+                      border: '1px solid rgba(96,165,250,0.06)',
+                      borderRadius: 'var(--radius-sm)'
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                         <div>
-                          <div style={{ fontSize: '16px', fontWeight: '600', color: '#1a202c', marginBottom: '8px' }}>{measure.name}</div>
+                          <div style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text)', marginBottom: '8px' }}>{measure.name}</div>
                           <div style={{
                             padding: '8px 12px',
-                            background: '#1a202c',
+                            background: 'var(--dim)',
                             color: '#68d391',
-                            borderRadius: '4px',
+                            borderRadius: 'var(--radius-sm)',
                             fontSize: '12px',
                             fontFamily: 'monospace',
                             marginBottom: '8px'
@@ -531,52 +570,65 @@ export function AnalyticsSection() {
           {activeView === 'ai-tools' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               <div style={{
-                background: '#ffffff',
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0',
-                padding: '24px'
+                background: 'var(--s1)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid rgba(96,165,250,0.06)',
+                padding: '24px',
+                boxShadow: 'var(--shadow-elevated)'
               }}>
-                <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a202c', margin: 0, marginBottom: '20px' }}>AI-Powered Analytics</h3>
+                <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text)', margin: 0, marginBottom: '20px' }}>AI-Powered Analytics</h3>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
                   <div style={{
                     padding: '20px',
-                    background: '#f8fafc',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '8px'
+                    background: 'var(--s2)',
+                    border: '1px solid rgba(96,165,250,0.06)',
+                    borderRadius: 'var(--radius-md)'
                   }}>
-                    <h4 style={{ fontSize: '16px', fontWeight: '600', color: '#1a202c', marginBottom: '12px' }}>?? AI Chart Generator</h4>
-                    <p style={{ fontSize: '14px', color: '#4a5568', marginBottom: '16px' }}>Generate charts from natural language descriptions</p>
-                    <button style={{
-                      padding: '8px 16px',
-                      background: '#4299e1',
-                      border: 'none',
-                      borderRadius: '6px',
-                      color: '#ffffff',
-                      fontSize: '14px',
-                      cursor: 'pointer'
-                    }}>
+                    <h4 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text)', marginBottom: '12px' }}>📈 AI Chart Generator</h4>
+                    <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '16px' }}>Generate charts from natural language descriptions</p>
+                    <button 
+                      onClick={() => {
+                        setAiToolType('chart')
+                        setShowAIModal(true)
+                      }}
+                      style={{
+                        padding: '8px 16px',
+                        background: 'var(--elec)',
+                        border: 'none',
+                        borderRadius: 'var(--radius-sm)',
+                        color: 'var(--bg)',
+                        fontSize: '14px',
+                        cursor: 'pointer'
+                      }}
+                    >
                       Launch AI Chart Gen
                     </button>
                   </div>
                   
                   <div style={{
                     padding: '20px',
-                    background: '#f8fafc',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '8px'
+                    background: 'var(--s2)',
+                    border: '1px solid rgba(96,165,250,0.06)',
+                    borderRadius: 'var(--radius-md)'
                   }}>
-                    <h4 style={{ fontSize: '16px', fontWeight: '600', color: '#1a202c', marginBottom: '12px' }}>?? Smart Insights</h4>
-                    <p style={{ fontSize: '14px', color: '#4a5568', marginBottom: '16px' }}>AI-powered business insights and recommendations</p>
-                    <button style={{
-                      padding: '8px 16px',
-                      background: '#4299e1',
-                      border: 'none',
-                      borderRadius: '6px',
-                      color: '#ffffff',
-                      fontSize: '14px',
-                      cursor: 'pointer'
-                    }}>
+                    <h4 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text)', marginBottom: '12px' }}>💡 Smart Insights</h4>
+                    <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '16px' }}>AI-powered business insights and recommendations</p>
+                    <button 
+                      onClick={() => {
+                        setAiToolType('insights')
+                        setShowAIModal(true)
+                      }}
+                      style={{
+                        padding: '8px 16px',
+                        background: 'var(--elec)',
+                        border: 'none',
+                        borderRadius: 'var(--radius-sm)',
+                        color: 'var(--bg)',
+                        fontSize: '14px',
+                        cursor: 'pointer'
+                      }}
+                    >
                       Generate Insights
                     </button>
                   </div>
@@ -591,13 +643,13 @@ export function AnalyticsSection() {
       {selectedVisual && (
         <div style={{
           width: '300px',
-          background: '#ffffff',
-          borderLeft: '1px solid #e2e8f0',
+          background: 'var(--s1)',
+          borderLeft: '1px solid rgba(96,165,250,0.06)',
           padding: '24px',
           overflow: 'auto'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#1a202c', margin: 0 }}>Properties</h3>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text)', margin: 0 }}>Properties</h3>
             <button
               onClick={() => setSelectedVisual(null)}
               style={{
@@ -605,7 +657,7 @@ export function AnalyticsSection() {
                 border: 'none',
                 fontSize: '18px',
                 cursor: 'pointer',
-                color: '#718096'
+                color: 'var(--muted)'
               }}
             >
               ×
@@ -614,7 +666,7 @@ export function AnalyticsSection() {
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div>
-              <label style={{ fontSize: '12px', color: '#718096', marginBottom: '8px', display: 'block' }}>Title</label>
+              <label style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', display: 'block' }}>Title</label>
               <input
                 type="text"
                 value={selectedVisual.title}
@@ -626,9 +678,11 @@ export function AnalyticsSection() {
                 style={{
                   width: '100%',
                   padding: '8px',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '4px',
-                  fontSize: '14px'
+                  background: 'var(--s2)',
+                  border: '1px solid rgba(96,165,250,0.15)',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '14px',
+                  color: 'var(--text)'
                 }}
               />
             </div>
@@ -645,9 +699,11 @@ export function AnalyticsSection() {
                 style={{
                   width: '100%',
                   padding: '8px',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '4px',
-                  fontSize: '14px'
+                  background: 'var(--s2)',
+                  border: '1px solid rgba(96,165,250,0.15)',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '14px',
+                  color: 'var(--text)'
                 }}
               >
                 {datasets.map(ds => (
@@ -658,7 +714,7 @@ export function AnalyticsSection() {
             
             {selectedVisual.type === 'chart' && (
               <div>
-                <label style={{ fontSize: '12px', color: '#718096', marginBottom: '8px', display: 'block' }}>Chart Type</label>
+                <label style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', display: 'block' }}>Chart Type</label>
                 <select
                   value={selectedVisual.chartType}
                   onChange={(e) => {
@@ -669,9 +725,11 @@ export function AnalyticsSection() {
                   style={{
                     width: '100%',
                     padding: '8px',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '4px',
-                    fontSize: '14px'
+                    background: 'var(--s2)',
+                    border: '1px solid rgba(96,165,250,0.15)',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '14px',
+                    color: 'var(--text)'
                   }}
                 >
                   <option value="bar">Bar Chart</option>
@@ -682,6 +740,664 @@ export function AnalyticsSection() {
                 </select>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Refresh Modal */}
+      {showRefreshModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'var(--s1)',
+            borderRadius: 'var(--radius-md)',
+            padding: '24px',
+            width: '300px',
+            maxWidth: '90%',
+            border: '1px solid rgba(96,165,250,0.06)',
+            boxShadow: 'var(--shadow-elevated)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                background: '#4299e1',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#ffffff',
+                fontSize: '20px',
+                animation: 'spin 1s linear infinite'
+              }}>
+                <span>×</span>
+              </div>
+              <div>
+                <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text)', margin: 0 }}>Refreshing Data</h3>
+                <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '4px 0 0 0' }}>Updating dashboard...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* New Modal */}
+      {showNewModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'var(--s1)',
+            borderRadius: 'var(--radius-md)',
+            padding: '24px',
+            width: '500px',
+            maxWidth: '90%',
+            border: '1px solid var(--border)',
+            boxShadow: 'var(--shadow-elevated)'
+          }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text)', marginBottom: '16px' }}>
+              Create New {newModalType.charAt(0).toUpperCase() + newModalType.slice(1)}
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <input
+                type="text"
+                placeholder="Name"
+                style={{
+                  padding: '12px',
+                  background: 'var(--s2)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '14px',
+                  color: 'var(--text)'
+                }}
+              />
+              <textarea
+                placeholder="Description"
+                rows={3}
+                style={{
+                  padding: '12px',
+                  background: 'var(--s2)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '14px',
+                  color: 'var(--text)',
+                  resize: 'vertical'
+                }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+              <button
+                onClick={() => setShowNewModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  background: 'var(--s2)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--text)',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => setShowNewModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  background: 'var(--elec)',
+                  border: 'none',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--bg)',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}
+              >
+                Create
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'var(--s1)',
+            borderRadius: 'var(--radius-md)',
+            padding: '24px',
+            width: '600px',
+            maxWidth: '90%',
+            border: '1px solid var(--border)',
+            boxShadow: 'var(--shadow-elevated)'
+          }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text)', marginBottom: '16px' }}>
+              Edit Dashboard
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', display: 'block' }}>Layout</label>
+                  <select style={{
+                    width: '100%',
+                    padding: '8px',
+                    background: 'var(--s2)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '14px',
+                    color: 'var(--text)'
+                  }}>
+                    <option>Grid Layout</option>
+                    <option>Free Form</option>
+                    <option>Tabbed</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', display: 'block' }}>Theme</label>
+                  <select style={{
+                    width: '100%',
+                    padding: '8px',
+                    background: 'var(--s2)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '14px',
+                    color: 'var(--text)'
+                  }}>
+                    <option>Default</option>
+                    <option>Dark</option>
+                    <option>Light</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', display: 'block' }}>Description</label>
+                <textarea
+                  placeholder="Dashboard description..."
+                  rows={3}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    background: 'var(--s2)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '14px',
+                    color: 'var(--text)',
+                    resize: 'vertical'
+                  }}
+                />
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+              <button
+                onClick={() => setShowEditModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  background: 'var(--s2)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--text)',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => setShowEditModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  background: 'var(--elec)',
+                  border: 'none',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--bg)',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fullscreen Modal */}
+      {showFullscreen && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: '#ffffff',
+          zIndex: 1000,
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+          <div style={{
+            background: '#1a202c',
+            color: '#ffffff',
+            padding: '16px 24px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>Dashboard - Full Screen</h3>
+            <button
+              onClick={() => setShowFullscreen(false)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#ffffff',
+                fontSize: '24px',
+                cursor: 'pointer'
+              }}
+            >
+              ×
+            </button>
+          </div>
+          <div style={{ flex: 1, padding: '24px', overflow: 'auto' }}>
+            <div style={{ fontSize: '24px', color: 'var(--muted)', textAlign: 'center', marginTop: '100px' }}>
+              Full screen dashboard view would display here with all visualizations maximized
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Dataset Modal */}
+      {showAddDatasetModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'var(--s1)',
+            borderRadius: 'var(--radius-md)',
+            padding: '24px',
+            width: '600px',
+            maxWidth: '90%',
+            border: '1px solid var(--border)',
+            boxShadow: 'var(--shadow-elevated)'
+          }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text)', marginBottom: '16px' }}>
+              Add New Dataset
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', display: 'block' }}>Dataset Name</label>
+                  <input
+                    type="text"
+                    placeholder="Enter dataset name"
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      background: 'var(--s2)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius-sm)',
+                      fontSize: '14px',
+                      color: 'var(--text)'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', display: 'block' }}>Data Source</label>
+                  <select style={{
+                    width: '100%',
+                    padding: '8px',
+                    background: 'var(--s2)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '14px',
+                    color: 'var(--text)'
+                  }}>
+                    <option>Upload File</option>
+                    <option>Database Connection</option>
+                    <option>API Endpoint</option>
+                    <option>Excel File</option>
+                    <option>CSV File</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', display: 'block' }}>Connection String / File Path</label>
+                <input
+                  type="text"
+                  placeholder="Enter connection details or file path"
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    background: 'var(--s2)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '14px',
+                    color: 'var(--text)'
+                  }}
+                />
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+              <button
+                onClick={() => setShowAddDatasetModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  background: 'var(--s2)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--text)',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => setShowAddDatasetModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  background: 'var(--elec)',
+                  border: 'none',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--bg)',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}
+              >
+                Add Dataset
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* New Measure Modal */}
+      {showNewMeasureModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'var(--s1)',
+            borderRadius: 'var(--radius-md)',
+            padding: '24px',
+            width: '600px',
+            maxWidth: '90%',
+            border: '1px solid var(--border)',
+            boxShadow: 'var(--shadow-elevated)'
+          }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text)', marginBottom: '16px' }}>
+              Create New DAX Measure
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', display: 'block' }}>Measure Name</label>
+                <input
+                  type="text"
+                  placeholder="Enter measure name"
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    background: 'var(--s2)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '14px',
+                    color: 'var(--text)'
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', display: 'block' }}>DAX Expression</label>
+                <textarea
+                  placeholder="Enter DAX formula..."
+                  rows={4}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    background: 'var(--s2)',
+                    border: '1px solid rgba(96,165,250,0.15)',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '14px',
+                    fontFamily: 'monospace',
+                    color: 'var(--text)',
+                    resize: 'vertical'
+                  }}
+                />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', display: 'block' }}>Format String</label>
+                  <select style={{
+                    width: '100%',
+                    padding: '8px',
+                    background: 'var(--s2)',
+                    border: '1px solid rgba(96,165,250,0.15)',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '14px',
+                    color: 'var(--text)'
+                  }}>
+                    <option>0</option>
+                    <option>0.0</option>
+                    <option>0.00</option>
+                    <option>0.0%</option>
+                    <option>$0.0M</option>
+                    <option>$0.0K</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', display: 'block' }}>Category</label>
+                  <select style={{
+                    width: '100%',
+                    padding: '8px',
+                    background: 'var(--s2)',
+                    border: '1px solid rgba(96,165,250,0.15)',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '14px',
+                    color: 'var(--text)'
+                  }}>
+                    <option>Calculation</option>
+                    <option>Time Intelligence</option>
+                    <option>Filter</option>
+                    <option>Text</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+              <button
+                onClick={() => setShowNewMeasureModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '6px',
+                  color: '#4a5568',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => setShowNewMeasureModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  background: '#4299e1',
+                  border: 'none',
+                  borderRadius: '6px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}
+              >
+                Create Measure
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI Tools Modal */}
+      {showAIModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'var(--s1)',
+            borderRadius: 'var(--radius-md)',
+            padding: '24px',
+            width: '600px',
+            maxWidth: '90%',
+            border: '1px solid rgba(96,165,250,0.06)',
+            boxShadow: 'var(--shadow-elevated)'
+          }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text)', marginBottom: '16px' }}>
+              {aiToolType === 'chart' ? 'AI Chart Generator' : 'Smart Insights Generator'}
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', display: 'block' }}>
+                  {aiToolType === 'chart' ? 'Describe the chart you want to create' : 'Describe the insights you need'}
+                </label>
+                <textarea
+                  placeholder={aiToolType === 'chart' ? 
+                    "e.g., 'Create a bar chart showing sales by region for the last quarter'" : 
+                    "e.g., 'Analyze customer trends and identify growth opportunities'"}
+                  rows={4}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    background: 'var(--s2)',
+                    border: '1px solid rgba(96,165,250,0.15)',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '14px',
+                    color: 'var(--text)',
+                    resize: 'vertical'
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', display: 'block' }}>Data Source</label>
+                <select style={{
+                  width: '100%',
+                  padding: '8px',
+                  background: 'var(--s2)',
+                  border: '1px solid rgba(96,165,250,0.15)',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '14px',
+                  color: 'var(--text)'
+                }}>
+                  {datasets.map(ds => (
+                    <option key={ds.id} value={ds.name}>{ds.name}</option>
+                  ))}
+                </select>
+              </div>
+              {aiToolType === 'chart' && (
+                <div>
+                  <label style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', display: 'block' }}>Chart Type (Optional)</label>
+                  <select style={{
+                    width: '100%',
+                    padding: '8px',
+                    background: 'var(--s2)',
+                    border: '1px solid rgba(96,165,250,0.15)',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '14px',
+                    color: 'var(--text)'
+                  }}>
+                    <option>Auto-detect</option>
+                    <option>Bar Chart</option>
+                    <option>Line Chart</option>
+                    <option>Pie Chart</option>
+                    <option>Scatter Plot</option>
+                    <option>Area Chart</option>
+                  </select>
+                </div>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+              <button
+                onClick={() => setShowAIModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '6px',
+                  color: '#4a5568',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => setShowAIModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  background: '#4299e1',
+                  border: 'none',
+                  borderRadius: '6px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}
+              >
+                {aiToolType === 'chart' ? 'Generate Chart' : 'Generate Insights'}
+              </button>
+            </div>
           </div>
         </div>
       )}

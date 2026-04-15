@@ -12,6 +12,9 @@ export function CRMSection() {
   const [selectedLead, setSelectedLead] = useState<any>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStage, setFilterStage] = useState('all')
+  const [showSearchModal, setShowSearchModal] = useState(false)
+  const [showAddNewModal, setShowAddNewModal] = useState(false)
+  const [addNewType, setAddNewType] = useState('lead')
   
   const pLayout = (t: string, extra={}) => ({
     title: { text: t, font: { color: '#1a1f36', size: 14, family: "'Inter', sans-serif", weight: 600 }, x: 0 },
@@ -89,12 +92,12 @@ export function CRMSection() {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', background: '#f8fafc' }}>
+    <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)' }}>
       {/* Sidebar Navigation */}
-      <div style={{ width: '250px', background: '#1a1f36', color: '#ffffff', padding: '20px 0' }}>
+      <div style={{ width: '250px', background: 'var(--s1)', color: 'var(--text)', padding: '20px 0', borderRight: '1px solid rgba(96,165,250,0.06)' }}>
         <div style={{ padding: '0 20px', marginBottom: '30px' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '600', margin: 0, color: '#ffffff' }}>Radon CRM</h2>
-          <p style={{ fontSize: '12px', color: '#94a3b8', margin: '4px 0 0 0' }}>Customer Relationship Management</p>
+          <h2 style={{ fontSize: '20px', fontWeight: '600', margin: 0, color: 'var(--text)' }}>Radon CRM</h2>
+          <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '4px 0 0 0' }}>Customer Relationship Management</p>
         </div>
         
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -114,9 +117,9 @@ export function CRMSection() {
                 alignItems: 'center',
                 gap: '12px',
                 padding: '12px 20px',
-                background: activeView === item.id ? '#2563eb' : 'transparent',
+                background: activeView === item.id ? 'var(--elec)' : 'transparent',
                 border: 'none',
-                color: '#ffffff',
+                color: 'var(--text)',
                 fontSize: '14px',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
@@ -124,7 +127,7 @@ export function CRMSection() {
               }}
               onMouseEnter={(e) => {
                 if (activeView !== item.id) {
-                  e.currentTarget.style.background = '#334155'
+                  e.currentTarget.style.background = 'var(--s2)'
                 }
               }}
               onMouseLeave={(e) => {
@@ -143,9 +146,9 @@ export function CRMSection() {
       {/* Main Content Area */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Top Header */}
-        <div style={{ background: '#ffffff', borderBottom: '1px solid #e5e7eb', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ background: 'var(--s1)', borderBottom: '1px solid rgba(96,165,250,0.06)', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h1 style={{ fontSize: '24px', fontWeight: '600', color: '#1a1f36', margin: 0 }}>
+            <h1 style={{ fontSize: '24px', fontWeight: '600', color: 'var(--text)', margin: 0 }}>
               {activeView === 'dashboard' && 'Dashboard'}
               {activeView === 'leads' && 'Leads & Opportunities'}
               {activeView === 'contacts' && 'Contacts'}
@@ -153,35 +156,47 @@ export function CRMSection() {
               {activeView === 'activities' && 'Activities'}
               {activeView === 'reports' && 'Reports'}
             </h1>
-            <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0 0' }}>Manage your customer relationships</p>
+            <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '4px 0 0 0' }}>Manage your customer relationships</p>
           </div>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <button style={{
-              padding: '8px 16px',
-              background: '#ffffff',
-              border: '1px solid #d1d5db',
-              borderRadius: '6px',
-              color: '#374151',
-              fontSize: '14px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}>
+            <button 
+              onClick={() => setShowSearchModal(true)}
+              style={{
+                padding: '8px 16px',
+                background: 'var(--s2)',
+                border: '1px solid rgba(96,165,250,0.15)',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--text)',
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
               🔍 Search
             </button>
-            <button style={{
-              padding: '8px 16px',
-              background: '#2563eb',
-              border: 'none',
-              borderRadius: '6px',
-              color: '#ffffff',
-              fontSize: '14px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}>
+            <button 
+              onClick={() => {
+                setAddNewType(activeView === 'leads' ? 'lead' : 
+                            activeView === 'contacts' ? 'contact' : 
+                            activeView === 'accounts' ? 'account' : 
+                            activeView === 'activities' ? 'activity' : 'lead')
+                setShowAddNewModal(true)
+              }}
+              style={{
+                padding: '8px 16px',
+                background: 'var(--elec)',
+                border: 'none',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--bg)',
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
               ➕ Add New
             </button>
           </div>
@@ -202,14 +217,14 @@ export function CRMSection() {
                   { label: 'Avg Deal Size', value: `$${leads.length > 0 ? ((leads.reduce((s, l) => s + l.value, 0) / leads.length) / 1000).toFixed(0) : 0}K`, change: '+5%', trend: 'up' },
                 ].map((kpi, i) => (
                   <div key={i} style={{
-                    background: '#ffffff',
+                    background: 'var(--s1)',
                     padding: '20px',
-                    borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
-                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid rgba(96,165,250,0.06)',
+                    boxShadow: 'var(--shadow-elevated)'
                   }}>
-                    <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>{kpi.label}</div>
-                    <div style={{ fontSize: '28px', fontWeight: '600', color: '#1a1f36', marginBottom: '8px' }}>{kpi.value}</div>
+                    <div style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '8px' }}>{kpi.label}</div>
+                    <div style={{ fontSize: '28px', fontWeight: '600', color: 'var(--text)', marginBottom: '8px' }}>{kpi.value}</div>
                     <div style={{
                       fontSize: '12px',
                       color: kpi.trend === 'up' ? '#10b981' : '#ef4444',
@@ -226,22 +241,22 @@ export function CRMSection() {
               {/* Charts Row */}
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
                 <div style={{
-                  background: '#ffffff',
+                  background: 'var(--s1)',
                   padding: '24px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid rgba(96,165,250,0.06)',
+                  boxShadow: 'var(--shadow-elevated)'
                 }}>
                   <Plot data={[
                     { type: 'funnel', y: ['Discovery', 'Qualification', 'Proposal', 'Negotiation', 'Closed Won'], x: [12400, 3200, 850, 120, 48], marker: { color: ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'] }, textinfo: 'value+percent initial' as any }
                   ]} layout={pLayout('Sales Pipeline Funnel', { margin: { t: 50, b: 30, l: 120, r: 30 } })} style={{ width: '100%', height: '350px' }} config={{ displayModeBar: false }} />
                 </div>
                 <div style={{
-                  background: '#ffffff',
+                  background: 'var(--s1)',
                   padding: '24px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid rgba(96,165,250,0.06)',
+                  boxShadow: 'var(--shadow-elevated)'
                 }}>
                   <Plot data={[
                     { type: 'pie', values: [12, 28, 44], labels: ['High', 'Medium', 'Low'], hole: 0.7, marker: { colors: ['#ef4444', '#f59e0b', '#3b82f6'] }, textinfo: 'label+percent' }
@@ -251,13 +266,13 @@ export function CRMSection() {
 
               {/* Recent Activity */}
               <div style={{
-                background: '#ffffff',
+                background: 'var(--s1)',
                 padding: '24px',
-                borderRadius: '8px',
-                border: '1px solid #e5e7eb',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid rgba(96,165,250,0.06)',
+                boxShadow: 'var(--shadow-elevated)'
               }}>
-                <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a1f36', marginBottom: '16px' }}>Recent Activity</h3>
+                <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text)', marginBottom: '16px' }}>Recent Activity</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {activities.slice(0, 4).map(activity => (
                     <div key={activity.id} style={{
@@ -265,15 +280,15 @@ export function CRMSection() {
                       alignItems: 'center',
                       gap: '12px',
                       padding: '12px',
-                      background: '#f9fafb',
-                      borderRadius: '6px'
+                      background: 'var(--s2)',
+                      borderRadius: 'var(--radius-sm)'
                     }}>
                       <span style={{ fontSize: '20px' }}>{getActivityIcon(activity.type)}</span>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '14px', fontWeight: '500', color: '#1a1f36' }}>{activity.title}</div>
-                        <div style={{ fontSize: '12px', color: '#6b7280' }}>{activity.lead} • {activity.date} at {activity.time}</div>
+                        <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text)' }}>{activity.title}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{activity.lead} • {activity.date} at {activity.time}</div>
                       </div>
-                      <div style={{ fontSize: '12px', color: '#6b7280' }}>{activity.duration}</div>
+                      <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{activity.duration}</div>
                     </div>
                   ))}
                 </div>
@@ -286,11 +301,11 @@ export function CRMSection() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               {/* Filters and Search */}
               <div style={{
-                background: '#ffffff',
+                background: 'var(--s1)',
                 padding: '20px',
-                borderRadius: '8px',
-                border: '1px solid #e5e7eb',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid rgba(96,165,250,0.06)',
+                boxShadow: 'var(--shadow-elevated)',
                 display: 'flex',
                 gap: '16px',
                 alignItems: 'center'
@@ -303,9 +318,11 @@ export function CRMSection() {
                   style={{
                     flex: 1,
                     padding: '8px 12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '14px'
+                    border: '1px solid rgba(96,165,250,0.15)',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '14px',
+                    background: 'var(--s2)',
+                    color: 'var(--text)'
                   }}
                 />
                 <select
@@ -313,9 +330,11 @@ export function CRMSection() {
                   onChange={(e) => setFilterStage(e.target.value)}
                   style={{
                     padding: '8px 12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '14px'
+                    border: '1px solid rgba(96,165,250,0.15)',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '14px',
+                    background: 'var(--s2)',
+                    color: 'var(--text)'
                   }}
                 >
                   <option value="all">All Stages</option>
@@ -329,14 +348,14 @@ export function CRMSection() {
 
               {/* Leads Table */}
               <div style={{
-                background: '#ffffff',
-                borderRadius: '8px',
-                border: '1px solid #e5e7eb',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                background: 'var(--s1)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid rgba(96,165,250,0.06)',
+                boxShadow: 'var(--shadow-elevated)',
                 overflow: 'hidden'
               }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead style={{ background: '#f9fafb' }}>
+                  <thead style={{ background: 'var(--s2)' }}>
                     <tr>
                       {['Lead Name', 'Value', 'Stage', 'Probability', 'Owner', 'Contact', 'Created'].map(header => (
                         <th key={header} style={{
@@ -344,10 +363,10 @@ export function CRMSection() {
                           textAlign: 'left',
                           fontSize: '12px',
                           fontWeight: '600',
-                          color: '#6b7280',
+                          color: 'var(--muted)',
                           textTransform: 'uppercase',
                           letterSpacing: '0.05em',
-                          borderBottom: '1px solid #e5e7eb'
+                          borderBottom: '1px solid rgba(96,165,250,0.06)'
                         }}>
                           {header}
                         </th>
@@ -359,12 +378,12 @@ export function CRMSection() {
                       <tr
                         key={lead.id}
                         style={{
-                          borderBottom: '1px solid #f3f4f6',
+                          borderBottom: '1px solid rgba(96,165,250,0.03)',
                           cursor: 'pointer',
                           transition: 'background-color 0.2s ease'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#f9fafb'
+                          e.currentTarget.style.backgroundColor = 'var(--s2)'
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = 'transparent'
@@ -373,12 +392,12 @@ export function CRMSection() {
                       >
                         <td style={{ padding: '12px 16px' }}>
                           <div>
-                            <div style={{ fontSize: '14px', fontWeight: '500', color: '#1a1f36' }}>{lead.name}</div>
-                            <div style={{ fontSize: '12px', color: '#6b7280' }}>{lead.industry} • {lead.size}</div>
+                            <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text)' }}>{lead.name}</div>
+                            <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{lead.industry} • {lead.size}</div>
                           </div>
                         </td>
                         <td style={{ padding: '12px 16px' }}>
-                          <span style={{ fontSize: '14px', fontWeight: '600', color: '#1a1f36' }}>
+                          <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text)' }}>
                             ${(lead.value / 1000).toFixed(0)}K
                           </span>
                         </td>
@@ -399,7 +418,7 @@ export function CRMSection() {
                             <div style={{
                               width: '100%',
                               height: '6px',
-                              backgroundColor: '#e5e7eb',
+                              backgroundColor: 'rgba(96,165,250,0.1)',
                               borderRadius: '3px',
                               overflow: 'hidden'
                             }}>
@@ -409,22 +428,22 @@ export function CRMSection() {
                                 backgroundColor: getStageColor(lead.stage)
                               }} />
                             </div>
-                            <span style={{ fontSize: '12px', color: '#6b7280', minWidth: '35px' }}>
+                            <span style={{ fontSize: '12px', color: 'var(--muted)', minWidth: '35px' }}>
                               {lead.probability}%
                             </span>
                           </div>
                         </td>
                         <td style={{ padding: '12px 16px' }}>
-                          <div style={{ fontSize: '14px', color: '#1a1f36' }}>{lead.owner}</div>
+                          <div style={{ fontSize: '14px', color: 'var(--text)' }}>{lead.owner}</div>
                         </td>
                         <td style={{ padding: '12px 16px' }}>
                           <div>
-                            <div style={{ fontSize: '14px', color: '#1a1f36' }}>{lead.contact}</div>
-                            <div style={{ fontSize: '12px', color: '#6b7280' }}>{lead.email}</div>
+                            <div style={{ fontSize: '14px', color: 'var(--text)' }}>{lead.contact}</div>
+                            <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{lead.email}</div>
                           </div>
                         </td>
                         <td style={{ padding: '12px 16px' }}>
-                          <div style={{ fontSize: '14px', color: '#6b7280' }}>{lead.created}</div>
+                          <div style={{ fontSize: '14px', color: 'var(--muted)' }}>{lead.created}</div>
                         </td>
                       </tr>
                     ))}
@@ -437,29 +456,29 @@ export function CRMSection() {
           {/* Contacts View */}
           {activeView === 'contacts' && (
             <div style={{
-              background: '#ffffff',
+              background: 'var(--s1)',
               padding: '24px',
-              borderRadius: '8px',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid rgba(96,165,250,0.06)',
+              boxShadow: 'var(--shadow-elevated)'
             }}>
-              <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a1f36', marginBottom: '16px' }}>Contact Management</h3>
+              <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text)', marginBottom: '16px' }}>Contact Management</h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
                 {contacts.map(contact => {
                   const customer = customers.find(c => c.id === contact.customerId)
                   return (
                   <div key={contact.id} style={{
                     padding: '16px',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    background: '#f9fafb'
+                    border: '1px solid rgba(96,165,250,0.06)',
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'var(--s2)'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
                       <div style={{
                         width: '40px',
                         height: '40px',
                         borderRadius: '50%',
-                        backgroundColor: '#3b82f6',
+                        backgroundColor: 'var(--elec)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -470,11 +489,11 @@ export function CRMSection() {
                         {contact.avatar}
                       </div>
                       <div>
-                        <div style={{ fontSize: '14px', fontWeight: '600', color: '#1a1f36' }}>{contact.name}</div>
-                        <div style={{ fontSize: '12px', color: '#6b7280' }}>{customer?.name || ''}</div>
+                        <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text)' }}>{contact.name}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{customer?.name || ''}</div>
                       </div>
                     </div>
-                    <div style={{ fontSize: '12px', color: '#6b7280', lineHeight: '1.5' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: '1.5' }}>
                       <div>📧 {contact.email}</div>
                       <div>📞 {contact.phone}</div>
                       <div>🏢 {customer?.industry || ''}</div>
@@ -489,25 +508,25 @@ export function CRMSection() {
           {/* Accounts View */}
           {activeView === 'accounts' && (
             <div style={{
-              background: '#ffffff',
+              background: 'var(--s1)',
               padding: '24px',
-              borderRadius: '8px',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid rgba(96,165,250,0.06)',
+              boxShadow: 'var(--shadow-elevated)'
             }}>
-              <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a1f36', marginBottom: '16px' }}>Account Management</h3>
+              <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text)', marginBottom: '16px' }}>Account Management</h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px' }}>
                 {enrichedLeads.map(lead => (
                   <div key={lead.id} style={{
                     padding: '20px',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    background: '#ffffff'
+                    border: '1px solid rgba(96,165,250,0.06)',
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'var(--s2)'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '16px' }}>
                       <div>
-                        <h4 style={{ fontSize: '16px', fontWeight: '600', color: '#1a1f36', margin: '0 0 4px 0' }}>{lead.name}</h4>
-                        <div style={{ fontSize: '12px', color: '#6b7280' }}>{lead.industry} • {lead.size}</div>
+                        <h4 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text)', margin: '0 0 4px 0' }}>{lead.name}</h4>
+                        <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{lead.industry} • {lead.size}</div>
                       </div>
                       <span style={{
                         padding: '4px 8px',
@@ -520,14 +539,14 @@ export function CRMSection() {
                         {lead.stage.charAt(0).toUpperCase() + lead.stage.slice(1).replace('-', ' ')}
                       </span>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '12px', color: '#6b7280' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '12px', color: 'var(--muted)' }}>
                       <div>
-                        <div style={{ fontWeight: '600', color: '#1a1f36', marginBottom: '4px' }}>Contact</div>
+                        <div style={{ fontWeight: '600', color: 'var(--text)', marginBottom: '4px' }}>Contact</div>
                         <div>{lead.contact}</div>
                         <div>{lead.email}</div>
                       </div>
                       <div>
-                        <div style={{ fontWeight: '600', color: '#1a1f36', marginBottom: '4px' }}>Deal Info</div>
+                        <div style={{ fontWeight: '600', color: 'var(--text)', marginBottom: '4px' }}>Deal Info</div>
                         <div>Value: ${(lead.value / 1000).toFixed(0)}K</div>
                         <div>Owner: {lead.owner}</div>
                       </div>
@@ -541,28 +560,28 @@ export function CRMSection() {
           {/* Activities View */}
           {activeView === 'activities' && (
             <div style={{
-              background: '#ffffff',
+              background: 'var(--s1)',
               padding: '24px',
-              borderRadius: '8px',
-              border: '1px solid #e5e7eb',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid rgba(96,165,250,0.06)',
+              boxShadow: 'var(--shadow-elevated)'
             }}>
-              <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a1f36', marginBottom: '16px' }}>Activity Timeline</h3>
+              <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text)', marginBottom: '16px' }}>Activity Timeline</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {activities.map(activity => (
                   <div key={activity.id} style={{
                     display: 'flex',
                     gap: '16px',
                     padding: '16px',
-                    background: '#f9fafb',
-                    borderRadius: '8px',
-                    border: '1px solid #e5e7eb'
+                    background: 'var(--s2)',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid rgba(96,165,250,0.06)'
                   }}>
                     <div style={{
                       width: '40px',
                       height: '40px',
                       borderRadius: '50%',
-                      backgroundColor: '#3b82f6',
+                      backgroundColor: 'var(--elec)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -571,13 +590,13 @@ export function CRMSection() {
                       {getActivityIcon(activity.type)}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '16px', fontWeight: '600', color: '#1a1f36', marginBottom: '4px' }}>
+                      <div style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text)', marginBottom: '4px' }}>
                         {activity.title}
                       </div>
-                      <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>
+                      <div style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '8px' }}>
                         {activity.lead} • {activity.date} at {activity.time} {activity.duration !== '-' && `• ${activity.duration}`}
                       </div>
-                      <div style={{ fontSize: '14px', color: '#374151', lineHeight: '1.5' }}>
+                      <div style={{ fontSize: '14px', color: 'var(--text)', lineHeight: '1.5' }}>
                         {activity.notes}
                       </div>
                     </div>
@@ -592,22 +611,22 @@ export function CRMSection() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div style={{
-                  background: '#ffffff',
+                  background: 'var(--s1)',
                   padding: '24px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid rgba(96,165,250,0.06)',
+                  boxShadow: 'var(--shadow-elevated)'
                 }}>
                   <Plot data={[
                     { type: 'bar', x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], y: [420, 380, 510, 490, 620, 710], marker: { color: '#3b82f6' } }
                   ]} layout={pLayout('Monthly Revenue Trend', { margin: { t: 50, b: 40, l: 50, r: 30 } })} style={{ width: '100%', height: '300px' }} config={{ displayModeBar: false }} />
                 </div>
                 <div style={{
-                  background: '#ffffff',
+                  background: 'var(--s1)',
                   padding: '24px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid rgba(96,165,250,0.06)',
+                  boxShadow: 'var(--shadow-elevated)'
                 }}>
                   <Plot data={[
                     { type: 'scatter', mode: 'lines+markers', x: ['Week 1', 'Week 2', 'Week 3', 'Week 4'], y: [12, 19, 15, 25], line: { color: '#10b981' }, marker: { color: '#10b981', size: 8 } }
@@ -634,13 +653,13 @@ export function CRMSection() {
       {selectedLead && (
         <div style={{
           width: '400px',
-          background: '#ffffff',
-          borderLeft: '1px solid #e5e7eb',
+          background: 'var(--s1)',
+          borderLeft: '1px solid rgba(96,165,250,0.06)',
           padding: '24px',
           overflow: 'auto'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a1f36', margin: 0 }}>Lead Details</h3>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text)', margin: 0 }}>Lead Details</h3>
             <button
               onClick={() => setSelectedLead(null)}
               style={{
@@ -648,7 +667,7 @@ export function CRMSection() {
                 border: 'none',
                 fontSize: '20px',
                 cursor: 'pointer',
-                color: '#6b7280'
+                color: 'var(--muted)'
               }}
             >
               ×
@@ -657,14 +676,14 @@ export function CRMSection() {
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div>
-              <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#6b7280', marginBottom: '8px' }}>Company Information</h4>
-              <div style={{ fontSize: '16px', fontWeight: '600', color: '#1a1f36', marginBottom: '4px' }}>{selectedLead.name}</div>
-              <div style={{ fontSize: '14px', color: '#6b7280' }}>{selectedLead.industry} • {selectedLead.size}</div>
+              <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--muted)', marginBottom: '8px' }}>Company Information</h4>
+              <div style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text)', marginBottom: '4px' }}>{selectedLead.name}</div>
+              <div style={{ fontSize: '14px', color: 'var(--muted)' }}>{selectedLead.industry} • {selectedLead.size}</div>
             </div>
             
             <div>
-              <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#6b7280', marginBottom: '8px' }}>Contact Information</h4>
-              <div style={{ fontSize: '14px', color: '#1a1f36', lineHeight: '1.6' }}>
+              <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--muted)', marginBottom: '8px' }}>Contact Information</h4>
+              <div style={{ fontSize: '14px', color: 'var(--text)', lineHeight: '1.6' }}>
                 <div><strong>Name:</strong> {selectedLead.contact}</div>
                 <div><strong>Email:</strong> {selectedLead.email}</div>
                 <div><strong>Phone:</strong> {selectedLead.phone}</div>
@@ -672,8 +691,8 @@ export function CRMSection() {
             </div>
             
             <div>
-              <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#6b7280', marginBottom: '8px' }}>Deal Information</h4>
-              <div style={{ fontSize: '14px', color: '#1a1f36', lineHeight: '1.6' }}>
+              <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--muted)', marginBottom: '8px' }}>Deal Information</h4>
+              <div style={{ fontSize: '14px', color: 'var(--text)', lineHeight: '1.6' }}>
                 <div><strong>Value:</strong> ${(selectedLead.value / 1000).toFixed(0)}K</div>
                 <div><strong>Stage:</strong> {selectedLead.stage.charAt(0).toUpperCase() + selectedLead.stage.slice(1).replace('-', ' ')}</div>
                 <div><strong>Probability:</strong> {selectedLead.probability}%</div>
@@ -683,42 +702,329 @@ export function CRMSection() {
             </div>
             
             <div>
-              <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#6b7280', marginBottom: '12px' }}>Actions</h4>
+              <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--muted)', marginBottom: '12px' }}>Actions</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <button style={{
-                  padding: '10px 16px',
-                  background: '#3b82f6',
+                <button 
+                  onClick={() => {
+                    alert('Edit lead functionality would open a form to edit: ' + selectedLead.name)
+                  }}
+                  style={{
+                    padding: '10px 16px',
+                    background: 'var(--elec)',
+                    border: 'none',
+                    borderRadius: 'var(--radius-sm)',
+                    color: 'var(--bg)',
+                    fontSize: '14px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Edit Lead
+                </button>
+                <button 
+                  onClick={() => {
+                    alert('Log activity functionality would allow adding: calls, emails, meetings, tasks for ' + selectedLead.name)
+                  }}
+                  style={{
+                    padding: '10px 16px',
+                    background: '#ffffff',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    color: '#374151',
+                    fontSize: '14px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Log Activity
+                </button>
+                <button 
+                  onClick={() => {
+                    alert('Create task functionality would create a new task for: ' + selectedLead.name)
+                  }}
+                  style={{
+                    padding: '10px 16px',
+                    background: '#ffffff',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    color: '#374151',
+                    fontSize: '14px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Create Task
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Search Modal */}
+      {showSearchModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '8px',
+            padding: '24px',
+            width: '500px',
+            maxWidth: '90%'
+          }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a1f36', marginBottom: '16px' }}>
+              Search CRM Records
+            </h3>
+            <input
+              type="text"
+              placeholder="Search leads, contacts, accounts..."
+              autoFocus
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                fontSize: '14px',
+                marginBottom: '16px'
+              }}
+            />
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowSearchModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  background: '#ffffff',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  color: '#374151',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => setShowSearchModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  background: '#2563eb',
                   border: 'none',
                   borderRadius: '6px',
                   color: '#ffffff',
                   fontSize: '14px',
                   cursor: 'pointer'
-                }}>
-                  Edit Lead
-                </button>
-                <button style={{
-                  padding: '10px 16px',
+                }}
+              >
+                Search
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add New Modal */}
+      {showAddNewModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '8px',
+            padding: '24px',
+            width: '500px',
+            maxWidth: '90%'
+          }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a1f36', marginBottom: '16px' }}>
+              Add New {addNewType.charAt(0).toUpperCase() + addNewType.slice(1)}
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {addNewType === 'lead' && (
+                <>
+                  <input
+                    type="text"
+                    placeholder="Lead Name"
+                    style={{
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Company"
+                    style={{
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}
+                  />
+                  <input
+                    type="number"
+                    placeholder="Deal Value"
+                    style={{
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}
+                  />
+                </>
+              )}
+              {addNewType === 'contact' && (
+                <>
+                  <input
+                    type="text"
+                    placeholder="Contact Name"
+                    style={{
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}
+                  />
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    style={{
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}
+                  />
+                  <input
+                    type="tel"
+                    placeholder="Phone"
+                    style={{
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}
+                  />
+                </>
+              )}
+              {addNewType === 'account' && (
+                <>
+                  <input
+                    type="text"
+                    placeholder="Account Name"
+                    style={{
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Industry"
+                    style={{
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Company Size"
+                    style={{
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}
+                  />
+                </>
+              )}
+              {addNewType === 'activity' && (
+                <>
+                  <input
+                    type="text"
+                    placeholder="Activity Title"
+                    style={{
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}
+                  />
+                  <select
+                    style={{
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}
+                  >
+                    <option value="">Select Activity Type</option>
+                    <option value="call">Call</option>
+                    <option value="email">Email</option>
+                    <option value="meeting">Meeting</option>
+                    <option value="task">Task</option>
+                  </select>
+                  <textarea
+                    placeholder="Notes"
+                    rows={3}
+                    style={{
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      resize: 'vertical'
+                    }}
+                  />
+                </>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+              <button
+                onClick={() => setShowAddNewModal(false)}
+                style={{
+                  padding: '8px 16px',
                   background: '#ffffff',
                   border: '1px solid #d1d5db',
                   borderRadius: '6px',
                   color: '#374151',
                   fontSize: '14px',
                   cursor: 'pointer'
-                }}>
-                  Log Activity
-                </button>
-                <button style={{
-                  padding: '10px 16px',
-                  background: '#ffffff',
-                  border: '1px solid #d1d5db',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => setShowAddNewModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  background: '#2563eb',
+                  border: 'none',
                   borderRadius: '6px',
-                  color: '#374151',
+                  color: '#ffffff',
                   fontSize: '14px',
                   cursor: 'pointer'
-                }}>
-                  Create Task
-                </button>
-              </div>
+                }}
+              >
+                Create
+              </button>
             </div>
           </div>
         </div>

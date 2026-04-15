@@ -12,9 +12,12 @@ export function ERPSection() {
   const [selectedItem, setSelectedItem] = useState<any>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
+  const [showSearchModal, setShowSearchModal] = useState(false)
+  const [showNewRecordModal, setShowNewRecordModal] = useState(false)
+  const [newRecordType, setNewRecordType] = useState('')
   
   const pLayout = (t: string, extra={}) => ({
-    title: { text: t, font: { color: '#1a1f36', size: 14, family: "'Inter', sans-serif", weight: 600 }, x: 0 },
+    title: { text: t, font: { color: 'var(--text)', size: 14, family: "'Inter', sans-serif", weight: 600 }, x: 0 },
     paper_bgcolor: '#ffffff',
     plot_bgcolor: '#ffffff',
     font: { family: "'Inter', sans-serif", color: '#4a5568', size: 11 },
@@ -91,12 +94,12 @@ export function ERPSection() {
   const stats = db.getAggregatedStats()
 
   return (
-    <div style={{ display: 'flex', height: '100vh', background: '#f8fafc' }}>
+    <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)' }}>
       {/* Sidebar Navigation */}
-      <div style={{ width: '260px', background: '#1e293b', color: '#ffffff', padding: '20px 0' }}>
+      <div style={{ width: '260px', background: 'var(--s1)', color: 'var(--text)', padding: '20px 0', borderRight: '1px solid rgba(96,165,250,0.06)' }}>
         <div style={{ padding: '0 20px', marginBottom: '30px' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '600', margin: 0, color: '#ffffff' }}>Radon ERP</h2>
-          <p style={{ fontSize: '12px', color: '#94a3b8', margin: '4px 0 0 0' }}>Enterprise Resource Planning</p>
+          <h2 style={{ fontSize: '20px', fontWeight: '600', margin: 0, color: 'var(--text)' }}>Radon ERP</h2>
+          <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '4px 0 0 0' }}>Enterprise Resource Planning</p>
         </div>
         
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -118,9 +121,9 @@ export function ERPSection() {
                 alignItems: 'center',
                 gap: '12px',
                 padding: '12px 20px',
-                background: activeModule === item.id ? '#2563eb' : 'transparent',
+                background: activeModule === item.id ? 'var(--elec)' : 'transparent',
                 border: 'none',
-                color: '#ffffff',
+                color: 'var(--text)',
                 fontSize: '14px',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
@@ -128,7 +131,7 @@ export function ERPSection() {
               }}
               onMouseEnter={(e) => {
                 if (activeModule !== item.id) {
-                  e.currentTarget.style.background = '#334155'
+                  e.currentTarget.style.background = 'var(--s2)'
                 }
               }}
               onMouseLeave={(e) => {
@@ -147,9 +150,9 @@ export function ERPSection() {
       {/* Main Content Area */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Top Header */}
-        <div style={{ background: '#ffffff', borderBottom: '1px solid #e5e7eb', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ background: 'var(--s1)', borderBottom: '1px solid rgba(96,165,250,0.06)', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h1 style={{ fontSize: '24px', fontWeight: '600', color: '#1a1f36', margin: 0 }}>
+            <h1 style={{ fontSize: '24px', fontWeight: '600', color: 'var(--text)', margin: 0 }}>
               {activeModule === 'dashboard' && 'ERP Dashboard'}
               {activeModule === 'financials' && 'Financial Management'}
               {activeModule === 'inventory' && 'Inventory Management'}
@@ -159,35 +162,47 @@ export function ERPSection() {
               {activeModule === 'manufacturing' && 'Manufacturing'}
               {activeModule === 'reports' && 'Reports & Analytics'}
             </h1>
-            <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0 0' }}>Manage your enterprise resources efficiently</p>
+            <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '4px 0 0 0' }}>Manage your enterprise resources efficiently</p>
           </div>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <button style={{
-              padding: '8px 16px',
-              background: '#ffffff',
-              border: '1px solid #d1d5db',
-              borderRadius: '6px',
-              color: '#374151',
-              fontSize: '14px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}>
+            <button 
+              onClick={() => setShowSearchModal(true)}
+              style={{
+                padding: '8px 16px',
+                background: 'var(--s2)',
+                border: '1px solid rgba(96,165,250,0.15)',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--text)',
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
               🔍 Search
             </button>
-            <button style={{
-              padding: '8px 16px',
-              background: '#2563eb',
-              border: 'none',
-              borderRadius: '6px',
-              color: '#ffffff',
-              fontSize: '14px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}>
+            <button 
+              onClick={() => {
+                setNewRecordType(activeModule === 'financials' ? 'financial' : 
+                              activeModule === 'inventory' ? 'inventory' : 
+                              activeModule === 'hr' ? 'employee' : 
+                              activeModule === 'projects' ? 'project' : 'general')
+                setShowNewRecordModal(true)
+              }}
+              style={{
+                padding: '8px 16px',
+                background: 'var(--elec)',
+                border: 'none',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--bg)',
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
               ➕ New Record
             </button>
           </div>
@@ -208,14 +223,14 @@ export function ERPSection() {
                   { label: 'Employees', value: stats.erp.employeeCount.toString(), change: '+5.2%', trend: 'up' },
                 ].map((kpi, i) => (
                   <div key={i} style={{
-                    background: '#ffffff',
+                    background: 'var(--s1)',
                     padding: '20px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
+                    border: '1px solid rgba(96,165,250,0.06)',
                     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                   }}>
-                    <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>{kpi.label}</div>
-                    <div style={{ fontSize: '28px', fontWeight: '600', color: '#1a1f36', marginBottom: '8px' }}>{kpi.value}</div>
+                    <div style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '8px' }}>{kpi.label}</div>
+                    <div style={{ fontSize: '28px', fontWeight: '600', color: 'var(--text)', marginBottom: '8px' }}>{kpi.value}</div>
                     <div style={{
                       fontSize: '12px',
                       color: kpi.trend === 'up' ? '#10b981' : '#ef4444',
@@ -232,11 +247,11 @@ export function ERPSection() {
               {/* Charts Row */}
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
                 <div style={{
-                  background: '#ffffff',
+                  background: 'var(--s1)',
                   padding: '24px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid rgba(96,165,250,0.06)',
+                  boxShadow: 'var(--shadow-elevated)'
                 }}>
                   <Plot data={[
                     { type: 'bar', name: 'Revenue', x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], y: [420, 480, 510, 490, 580, 620], marker: { color: '#10b981' } },
@@ -245,11 +260,11 @@ export function ERPSection() {
                   ]} layout={pLayout('Revenue vs Expenses', { barmode: 'group', margin: { t: 50, b: 40, l: 50, r: 30 } })} style={{ width: '100%', height: '350px' }} config={{ displayModeBar: false }} />
                 </div>
                 <div style={{
-                  background: '#ffffff',
+                  background: 'var(--s1)',
                   padding: '24px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid rgba(96,165,250,0.06)',
+                  boxShadow: 'var(--shadow-elevated)'
                 }}>
                   <Plot data={[
                     { type: 'pie', values: [45, 25, 20, 10], labels: ['Electronics', 'Furniture', 'Office Supplies', 'Raw Materials'], hole: 0.7, marker: { colors: ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b'] }, textinfo: 'label+percent' }
@@ -259,16 +274,16 @@ export function ERPSection() {
 
               {/* Recent Activities */}
               <div style={{
-                background: '#ffffff',
+                background: 'var(--s1)',
                 padding: '24px',
-                borderRadius: '8px',
-                border: '1px solid #e5e7eb',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid rgba(96,165,250,0.06)',
+                boxShadow: 'var(--shadow-elevated)'
               }}>
-                <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a1f36', marginBottom: '16px' }}>Recent Activities</h3>
+                <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text)', marginBottom: '16px' }}>Recent Activities</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
                   <div>
-                    <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#6b7280', marginBottom: '12px' }}>Latest Transactions</h4>
+                    <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--muted)', marginBottom: '12px' }}>Latest Transactions</h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {[
                         { desc: 'Invoice #1245 paid', amount: '$12,500', time: '2 hours ago' },
@@ -277,12 +292,12 @@ export function ERPSection() {
                       ].map((item, i) => (
                         <div key={i} style={{
                           padding: '8px',
-                          background: '#f9fafb',
+                          background: 'var(--s2)',
                           borderRadius: '4px',
                           fontSize: '12px'
                         }}>
-                          <div style={{ fontWeight: '500', color: '#1a1f36' }}>{item.desc}</div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6b7280', marginTop: '2px' }}>
+                          <div style={{ fontWeight: '500', color: 'var(--text)' }}>{item.desc}</div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--muted)', marginTop: '2px' }}>
                             <span>{item.amount}</span>
                             <span>{item.time}</span>
                           </div>
@@ -291,7 +306,7 @@ export function ERPSection() {
                     </div>
                   </div>
                   <div>
-                    <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#6b7280', marginBottom: '12px' }}>Inventory Alerts</h4>
+                    <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--muted)', marginBottom: '12px' }}>Inventory Alerts</h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {[
                         { item: 'Standing Desk', status: 'critical', qty: '12 units' },
@@ -300,13 +315,13 @@ export function ERPSection() {
                       ].map((alert, i) => (
                         <div key={i} style={{
                           padding: '8px',
-                          background: '#f9fafb',
+                          background: 'var(--s2)',
                           borderRadius: '4px',
                           fontSize: '12px',
                           borderLeft: `3px solid ${getStatusColor(alert.status)}`
                         }}>
-                          <div style={{ fontWeight: '500', color: '#1a1f36' }}>{alert.item}</div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6b7280', marginTop: '2px' }}>
+                          <div style={{ fontWeight: '500', color: 'var(--text)' }}>{alert.item}</div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--muted)', marginTop: '2px' }}>
                             <span>{alert.qty}</span>
                             <span style={{ color: getStatusColor(alert.status) }}>{alert.status}</span>
                           </div>
@@ -315,7 +330,7 @@ export function ERPSection() {
                     </div>
                   </div>
                   <div>
-                    <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#6b7280', marginBottom: '12px' }}>Project Updates</h4>
+                    <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--muted)', marginBottom: '12px' }}>Project Updates</h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {[
                         { project: 'ERP Upgrade', progress: 65, status: 'on-track' },
@@ -324,15 +339,15 @@ export function ERPSection() {
                       ].map((proj, i) => (
                         <div key={i} style={{
                           padding: '8px',
-                          background: '#f9fafb',
-                          borderRadius: '4px',
+                          background: 'var(--s2)',
+                          borderRadius: 'var(--radius-sm)',
                           fontSize: '12px'
                         }}>
-                          <div style={{ fontWeight: '500', color: '#1a1f36' }}>{proj.project}</div>
+                          <div style={{ fontWeight: '500', color: 'var(--text)' }}>{proj.project}</div>
                           <div style={{ marginTop: '4px' }}>
                             <div style={{
                               height: '4px',
-                              background: '#e5e7eb',
+                              background: 'rgba(96,165,250,0.1)',
                               borderRadius: '2px',
                               overflow: 'hidden'
                             }}>
@@ -342,7 +357,7 @@ export function ERPSection() {
                                 backgroundColor: getStatusColor(proj.status)
                               }} />
                             </div>
-                            <div style={{ color: '#6b7280', marginTop: '2px' }}>{proj.progress}% complete</div>
+                            <div style={{ color: 'var(--muted)', marginTop: '2px' }}>{proj.progress}% complete</div>
                           </div>
                         </div>
                       ))}
@@ -365,14 +380,14 @@ export function ERPSection() {
                   { label: 'Profit Margin', value: '18.5%', change: '+3.2%', trend: 'up' },
                 ].map((kpi, i) => (
                   <div key={i} style={{
-                    background: '#ffffff',
+                    background: 'var(--s1)',
                     padding: '20px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
+                    border: '1px solid rgba(96,165,250,0.06)',
                     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                   }}>
-                    <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>{kpi.label}</div>
-                    <div style={{ fontSize: '28px', fontWeight: '600', color: '#1a1f36', marginBottom: '8px' }}>{kpi.value}</div>
+                    <div style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '8px' }}>{kpi.label}</div>
+                    <div style={{ fontSize: '28px', fontWeight: '600', color: 'var(--text)', marginBottom: '8px' }}>{kpi.value}</div>
                     <div style={{
                       fontSize: '12px',
                       color: kpi.trend === 'up' ? '#10b981' : '#ef4444',
@@ -389,11 +404,11 @@ export function ERPSection() {
               {/* Financial Charts */}
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
                 <div style={{
-                  background: '#ffffff',
+                  background: 'var(--s1)',
                   padding: '24px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid rgba(96,165,250,0.06)',
+                  boxShadow: 'var(--shadow-elevated)'
                 }}>
                   <Plot data={[
                     { type: 'bar', name: 'Revenue', x: ['Q1', 'Q2', 'Q3', 'Q4'], y: [1420, 1680, 1890, 1780], marker: { color: '#10b981' } },
@@ -402,11 +417,11 @@ export function ERPSection() {
                   ]} layout={pLayout('Quarterly Financial Performance', { barmode: 'group', margin: { t: 50, b: 40, l: 50, r: 30 } })} style={{ width: '100%', height: '350px' }} config={{ displayModeBar: false }} />
                 </div>
                 <div style={{
-                  background: '#ffffff',
+                  background: 'var(--s1)',
                   padding: '24px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid rgba(96,165,250,0.06)',
+                  boxShadow: 'var(--shadow-elevated)'
                 }}>
                   <Plot data={[
                     { type: 'pie', values: [1450, 890, 2340, 845], labels: ['Accounts Receivable', 'Accounts Payable', 'Cash', 'Inventory'], hole: 0.7, marker: { colors: ['#3b82f6', '#ef4444', '#10b981', '#f59e0b'] }, textinfo: 'label+percent' }
@@ -416,14 +431,14 @@ export function ERPSection() {
 
               {/* Financial Accounts Table */}
               <div style={{
-                background: '#ffffff',
+                background: 'var(--s1)',
                 borderRadius: '8px',
-                border: '1px solid #e5e7eb',
+                border: '1px solid rgba(96,165,250,0.06)',
                 boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                 overflow: 'hidden'
               }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead style={{ background: '#f9fafb' }}>
+                  <thead style={{ background: 'var(--s2)' }}>
                     <tr>
                       {['Account', 'Type', 'Balance', 'Change', 'Department'].map(header => (
                         <th key={header} style={{
@@ -431,10 +446,10 @@ export function ERPSection() {
                           textAlign: 'left',
                           fontSize: '12px',
                           fontWeight: '600',
-                          color: '#6b7280',
+                          color: 'var(--muted)',
                           textTransform: 'uppercase',
                           letterSpacing: '0.05em',
-                          borderBottom: '1px solid #e5e7eb'
+                          borderBottom: '1px solid rgba(96,165,250,0.06)'
                         }}>
                           {header}
                         </th>
@@ -508,14 +523,14 @@ export function ERPSection() {
                   { label: 'Turnover Rate', value: '4.2x', change: '+0.3x', trend: 'up' },
                 ].map((kpi, i) => (
                   <div key={i} style={{
-                    background: '#ffffff',
+                    background: 'var(--s1)',
                     padding: '20px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
+                    border: '1px solid rgba(96,165,250,0.06)',
                     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                   }}>
-                    <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>{kpi.label}</div>
-                    <div style={{ fontSize: '28px', fontWeight: '600', color: '#1a1f36', marginBottom: '8px' }}>{kpi.value}</div>
+                    <div style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '8px' }}>{kpi.label}</div>
+                    <div style={{ fontSize: '28px', fontWeight: '600', color: 'var(--text)', marginBottom: '8px' }}>{kpi.value}</div>
                     <div style={{
                       fontSize: '12px',
                       color: kpi.trend === 'up' ? '#10b981' : '#ef4444',
@@ -531,10 +546,10 @@ export function ERPSection() {
 
               {/* Search and Filters */}
               <div style={{
-                background: '#ffffff',
+                background: 'var(--s1)',
                 padding: '20px',
                 borderRadius: '8px',
-                border: '1px solid #e5e7eb',
+                border: '1px solid rgba(96,165,250,0.06)',
                 boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                 display: 'flex',
                 gap: '16px',
@@ -572,14 +587,14 @@ export function ERPSection() {
 
               {/* Inventory Table */}
               <div style={{
-                background: '#ffffff',
+                background: 'var(--s1)',
                 borderRadius: '8px',
-                border: '1px solid #e5e7eb',
+                border: '1px solid rgba(96,165,250,0.06)',
                 boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                 overflow: 'hidden'
               }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead style={{ background: '#f9fafb' }}>
+                  <thead style={{ background: 'var(--s2)' }}>
                     <tr>
                       {['SKU', 'Product Name', 'Category', 'Quantity', 'Value', 'Status', 'Location'].map(header => (
                         <th key={header} style={{
@@ -587,10 +602,10 @@ export function ERPSection() {
                           textAlign: 'left',
                           fontSize: '12px',
                           fontWeight: '600',
-                          color: '#6b7280',
+                          color: 'var(--muted)',
                           textTransform: 'uppercase',
                           letterSpacing: '0.05em',
-                          borderBottom: '1px solid #e5e7eb'
+                          borderBottom: '1px solid rgba(96,165,250,0.06)'
                         }}>
                           {header}
                         </th>
@@ -669,14 +684,14 @@ export function ERPSection() {
                   { label: 'Open Positions', value: '8', change: '-3', trend: 'down' },
                 ].map((kpi, i) => (
                   <div key={i} style={{
-                    background: '#ffffff',
+                    background: 'var(--s1)',
                     padding: '20px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
+                    border: '1px solid rgba(96,165,250,0.06)',
                     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                   }}>
-                    <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>{kpi.label}</div>
-                    <div style={{ fontSize: '28px', fontWeight: '600', color: '#1a1f36', marginBottom: '8px' }}>{kpi.value}</div>
+                    <div style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '8px' }}>{kpi.label}</div>
+                    <div style={{ fontSize: '28px', fontWeight: '600', color: 'var(--text)', marginBottom: '8px' }}>{kpi.value}</div>
                     <div style={{
                       fontSize: '12px',
                       color: kpi.trend === 'up' ? '#10b981' : '#ef4444',
@@ -692,14 +707,14 @@ export function ERPSection() {
 
               {/* Employee Table */}
               <div style={{
-                background: '#ffffff',
+                background: 'var(--s1)',
                 borderRadius: '8px',
-                border: '1px solid #e5e7eb',
+                border: '1px solid rgba(96,165,250,0.06)',
                 boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                 overflow: 'hidden'
               }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead style={{ background: '#f9fafb' }}>
+                  <thead style={{ background: 'var(--s2)' }}>
                     <tr>
                       {['Employee', 'Department', 'Position', 'Salary', 'Performance', 'Hire Date'].map(header => (
                         <th key={header} style={{
@@ -707,10 +722,10 @@ export function ERPSection() {
                           textAlign: 'left',
                           fontSize: '12px',
                           fontWeight: '600',
-                          color: '#6b7280',
+                          color: 'var(--muted)',
                           textTransform: 'uppercase',
                           letterSpacing: '0.05em',
-                          borderBottom: '1px solid #e5e7eb'
+                          borderBottom: '1px solid rgba(96,165,250,0.06)'
                         }}>
                           {header}
                         </th>
@@ -782,7 +797,7 @@ export function ERPSection() {
                                 backgroundColor: employee.performance >= 4 ? '#10b981' : employee.performance >= 3 ? '#f59e0b' : '#ef4444'
                               }} />
                             </div>
-                            <span style={{ fontSize: '12px', color: '#6b7280', minWidth: '25px' }}>
+                            <span style={{ fontSize: '12px', color: 'var(--muted)', minWidth: '25px' }}>
                               {employee.performance}
                             </span>
                           </div>
@@ -810,14 +825,14 @@ export function ERPSection() {
                   { label: 'Team Utilization', value: '78%', change: '+3%', trend: 'up' },
                 ].map((kpi, i) => (
                   <div key={i} style={{
-                    background: '#ffffff',
+                    background: 'var(--s1)',
                     padding: '20px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
+                    border: '1px solid rgba(96,165,250,0.06)',
                     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                   }}>
-                    <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>{kpi.label}</div>
-                    <div style={{ fontSize: '28px', fontWeight: '600', color: '#1a1f36', marginBottom: '8px' }}>{kpi.value}</div>
+                    <div style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '8px' }}>{kpi.label}</div>
+                    <div style={{ fontSize: '28px', fontWeight: '600', color: 'var(--text)', marginBottom: '8px' }}>{kpi.value}</div>
                     <div style={{
                       fontSize: '12px',
                       color: kpi.trend === 'up' ? '#10b981' : '#ef4444',
@@ -835,15 +850,15 @@ export function ERPSection() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '20px' }}>
                 {enrichedProjects.map(project => (
                   <div key={project.id} style={{
-                    background: '#ffffff',
+                    background: 'var(--s1)',
                     padding: '24px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
+                    border: '1px solid rgba(96,165,250,0.06)',
                     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '16px' }}>
                       <div>
-                        <h4 style={{ fontSize: '16px', fontWeight: '600', color: '#1a1f36', margin: '0 0 4px 0' }}>{project.name}</h4>
+                        <h4 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text)', margin: '0 0 4px 0' }}>{project.name}</h4>
                         <div style={{ fontSize: '12px', color: '#6b7280' }}>Manager: {project.manager}</div>
                       </div>
                       <span style={{
@@ -859,7 +874,7 @@ export function ERPSection() {
                     </div>
                     
                     <div style={{ marginBottom: '16px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--muted)', marginBottom: '4px' }}>
                         <span>Progress</span>
                         <span>{project.progress}%</span>
                       </div>
@@ -879,12 +894,12 @@ export function ERPSection() {
                     
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '12px', color: '#6b7280' }}>
                       <div>
-                        <div style={{ fontWeight: '600', color: '#1a1f36', marginBottom: '4px' }}>Budget</div>
+                        <div style={{ fontWeight: '600', color: 'var(--text)', marginBottom: '4px' }}>Budget</div>
                         <div>${(project.budget / 1000).toFixed(0)}K</div>
                         <div>Spent: ${(project.spent / 1000).toFixed(0)}K</div>
                       </div>
                       <div>
-                        <div style={{ fontWeight: '600', color: '#1a1f36', marginBottom: '4px' }}>Timeline</div>
+                        <div style={{ fontWeight: '600', color: 'var(--text)', marginBottom: '4px' }}>Timeline</div>
                         <div>{project.startDate}</div>
                         <div>{project.endDate}</div>
                       </div>
@@ -911,14 +926,14 @@ export function ERPSection() {
                   { label: 'Logistics Cost', value: '$124K', change: '-5%', trend: 'down' },
                 ].map((kpi, i) => (
                   <div key={i} style={{
-                    background: '#ffffff',
+                    background: 'var(--s1)',
                     padding: '20px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
+                    border: '1px solid rgba(96,165,250,0.06)',
                     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                   }}>
-                    <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>{kpi.label}</div>
-                    <div style={{ fontSize: '28px', fontWeight: '600', color: '#1a1f36', marginBottom: '8px' }}>{kpi.value}</div>
+                    <div style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '8px' }}>{kpi.label}</div>
+                    <div style={{ fontSize: '28px', fontWeight: '600', color: 'var(--text)', marginBottom: '8px' }}>{kpi.value}</div>
                     <div style={{
                       fontSize: '12px',
                       color: kpi.trend === 'up' ? '#10b981' : '#ef4444',
@@ -935,11 +950,11 @@ export function ERPSection() {
               {/* Supply Chain Charts */}
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
                 <div style={{
-                  background: '#ffffff',
+                  background: 'var(--s1)',
                   padding: '24px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid rgba(96,165,250,0.06)',
+                  boxShadow: 'var(--shadow-elevated)'
                 }}>
                   <Plot data={[
                     { type: 'scatter', mode: 'lines+markers', name: 'Inbound', x: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], y: [120, 150, 180, 90, 200, 140], line: { color: '#10b981', shape: 'spline' }, fill: 'tozeroy', fillcolor: 'rgba(16, 185, 129, 0.1)' },
@@ -947,11 +962,11 @@ export function ERPSection() {
                   ]} layout={pLayout('Weekly Shipments', { margin: { t: 50, b: 40, l: 50, r: 30 } })} style={{ width: '100%', height: '350px' }} config={{ displayModeBar: false }} />
                 </div>
                 <div style={{
-                  background: '#ffffff',
+                  background: 'var(--s1)',
                   padding: '24px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid rgba(96,165,250,0.06)',
+                  boxShadow: 'var(--shadow-elevated)'
                 }}>
                   <Plot data={[
                     { type: 'scatterpolar', r: [95, 80, 90, 75, 95], theta: ['Delivery', 'Quality', 'Pricing', 'Communication', 'Flexibility'], fill: 'toself', fillcolor: 'rgba(59, 130, 246, 0.2)', line: { color: '#3b82f6' } }
@@ -961,13 +976,13 @@ export function ERPSection() {
 
               {/* Shipment Tracking */}
               <div style={{
-                background: '#ffffff',
+                background: 'var(--s1)',
                 padding: '24px',
                 borderRadius: '8px',
-                border: '1px solid #e5e7eb',
+                border: '1px solid rgba(96,165,250,0.06)',
                 boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
               }}>
-                <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a1f36', marginBottom: '16px' }}>Active Shipments</h3>
+                <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text)', marginBottom: '16px' }}>Active Shipments</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
                   {[
                     { id: 'SHP-001', destination: 'New York, USA', status: 'in-transit', eta: '2 days', progress: 65 },
@@ -977,9 +992,9 @@ export function ERPSection() {
                   ].map(shipment => (
                     <div key={shipment.id} style={{
                       padding: '16px',
-                      border: '1px solid #e5e7eb',
+                      border: '1px solid rgba(96,165,250,0.06)',
                       borderRadius: '8px',
-                      background: '#f9fafb'
+                      background: 'var(--s2)'
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                         <div>
@@ -998,7 +1013,7 @@ export function ERPSection() {
                         </span>
                       </div>
                       <div style={{ marginBottom: '8px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--muted)', marginBottom: '4px' }}>
                           <span>Progress</span>
                           <span>{shipment.progress}%</span>
                         </div>
@@ -1037,14 +1052,14 @@ export function ERPSection() {
                   { label: 'Efficiency', value: '87%', change: '+3%', trend: 'up' },
                 ].map((kpi, i) => (
                   <div key={i} style={{
-                    background: '#ffffff',
+                    background: 'var(--s1)',
                     padding: '20px',
                     borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
+                    border: '1px solid rgba(96,165,250,0.06)',
                     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                   }}>
-                    <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>{kpi.label}</div>
-                    <div style={{ fontSize: '28px', fontWeight: '600', color: '#1a1f36', marginBottom: '8px' }}>{kpi.value}</div>
+                    <div style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '8px' }}>{kpi.label}</div>
+                    <div style={{ fontSize: '28px', fontWeight: '600', color: 'var(--text)', marginBottom: '8px' }}>{kpi.value}</div>
                     <div style={{
                       fontSize: '12px',
                       color: kpi.trend === 'up' ? '#10b981' : '#ef4444',
@@ -1061,11 +1076,11 @@ export function ERPSection() {
               {/* Production Charts */}
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
                 <div style={{
-                  background: '#ffffff',
+                  background: 'var(--s1)',
                   padding: '24px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid rgba(96,165,250,0.06)',
+                  boxShadow: 'var(--shadow-elevated)'
                 }}>
                   <Plot data={[
                     { type: 'scatter', mode: 'lines+markers', name: 'Actual', x: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], y: [1200, 1350, 1180, 1420, 1380, 1250], line: { color: '#10b981', shape: 'spline' } },
@@ -1073,11 +1088,11 @@ export function ERPSection() {
                   ]} layout={pLayout('Daily Production Output', { margin: { t: 50, b: 40, l: 50, r: 30 } })} style={{ width: '100%', height: '350px' }} config={{ displayModeBar: false }} />
                 </div>
                 <div style={{
-                  background: '#ffffff',
+                  background: 'var(--s1)',
                   padding: '24px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid rgba(96,165,250,0.06)',
+                  boxShadow: 'var(--shadow-elevated)'
                 }}>
                   <Plot data={[
                     { type: 'pie', values: [45, 25, 20, 10], labels: ['Line A', 'Line B', 'Line C', 'Line D'], hole: 0.7, marker: { colors: ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b'] }, textinfo: 'label+percent' }
@@ -1087,13 +1102,13 @@ export function ERPSection() {
 
               {/* Production Lines */}
               <div style={{
-                background: '#ffffff',
+                background: 'var(--s1)',
                 padding: '24px',
                 borderRadius: '8px',
-                border: '1px solid #e5e7eb',
+                border: '1px solid rgba(96,165,250,0.06)',
                 boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
               }}>
-                <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a1f36', marginBottom: '16px' }}>Production Lines Status</h3>
+                <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text)', marginBottom: '16px' }}>Production Lines Status</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
                   {[
                     { name: 'Line A - Electronics', status: 'running', output: 450, target: 500, efficiency: 90 },
@@ -1103,9 +1118,9 @@ export function ERPSection() {
                   ].map((line, i) => (
                     <div key={i} style={{
                       padding: '16px',
-                      border: '1px solid #e5e7eb',
+                      border: '1px solid rgba(96,165,250,0.06)',
                       borderRadius: '8px',
-                      background: '#f9fafb'
+                      background: 'var(--s2)'
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                         <div>
@@ -1124,7 +1139,7 @@ export function ERPSection() {
                         </span>
                       </div>
                       <div style={{ marginBottom: '8px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--muted)', marginBottom: '4px' }}>
                           <span>Output: {line.output} / {line.target}</span>
                         </div>
                         <div style={{
@@ -1152,22 +1167,22 @@ export function ERPSection() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div style={{
-                  background: '#ffffff',
+                  background: 'var(--s1)',
                   padding: '24px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid rgba(96,165,250,0.06)',
+                  boxShadow: 'var(--shadow-elevated)'
                 }}>
                   <Plot data={[
                     { type: 'bar', x: ['Q1', 'Q2', 'Q3', 'Q4'], y: [1420, 1680, 1890, 1780], marker: { color: '#3b82f6' } }
                   ]} layout={pLayout('Quarterly Revenue Trend', { margin: { t: 50, b: 40, l: 50, r: 30 } })} style={{ width: '100%', height: '300px' }} config={{ displayModeBar: false }} />
                 </div>
                 <div style={{
-                  background: '#ffffff',
+                  background: 'var(--s1)',
                   padding: '24px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid rgba(96,165,250,0.06)',
+                  boxShadow: 'var(--shadow-elevated)'
                 }}>
                   <Plot data={[
                     { type: 'scatter', mode: 'lines+markers', x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], y: [92, 88, 95, 91, 94, 96], line: { color: '#10b981' }, marker: { color: '#10b981', size: 8 } }
@@ -1176,11 +1191,11 @@ export function ERPSection() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
                 <div style={{
-                  background: '#ffffff',
+                  background: 'var(--s1)',
                   padding: '24px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid rgba(96,165,250,0.06)',
+                  boxShadow: 'var(--shadow-elevated)'
                 }}>
                   <Plot data={[
                     { type: 'bar', name: 'Revenue', x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], y: [420, 480, 510, 490, 580, 620], marker: { color: '#10b981' } },
@@ -1188,11 +1203,11 @@ export function ERPSection() {
                   ]} layout={pLayout('Monthly Financial Overview', { barmode: 'group', margin: { t: 50, b: 40, l: 50, r: 30 } })} style={{ width: '100%', height: '400px' }} config={{ displayModeBar: false }} />
                 </div>
                 <div style={{
-                  background: '#ffffff',
+                  background: 'var(--s1)',
                   padding: '24px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid rgba(96,165,250,0.06)',
+                  boxShadow: 'var(--shadow-elevated)'
                 }}>
                   <Plot data={[
                     { type: 'pie', values: [245, 89, 567, 12, 156], labels: ['Laptops', 'Chairs', 'Mice', 'Desks', 'Monitors'], hole: 0.7, marker: { colors: ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'] }, textinfo: 'label+percent' }
@@ -1208,13 +1223,13 @@ export function ERPSection() {
       {selectedItem && (
         <div style={{
           width: '400px',
-          background: '#ffffff',
+          background: 'var(--s1)',
           borderLeft: '1px solid #e5e7eb',
           padding: '24px',
           overflow: 'auto'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a1f36', margin: 0 }}>Item Details</h3>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text)', margin: 0 }}>Item Details</h3>
             <button
               onClick={() => setSelectedItem(null)}
               style={{
@@ -1233,38 +1248,38 @@ export function ERPSection() {
             {/* Dynamic content based on selected item type */}
             {selectedItem.sku && (
               <div>
-                <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#6b7280', marginBottom: '8px' }}>Product Information</h4>
-                <div style={{ fontSize: '16px', fontWeight: '600', color: '#1a1f36', marginBottom: '4px' }}>{selectedItem.name}</div>
+                <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--muted)', marginBottom: '8px' }}>Product Information</h4>
+                <div style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text)', marginBottom: '4px' }}>{selectedItem.name}</div>
                 <div style={{ fontSize: '14px', color: '#6b7280' }}>{selectedItem.category} • {selectedItem.sku}</div>
               </div>
             )}
             
             {selectedItem.account && (
               <div>
-                <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#6b7280', marginBottom: '8px' }}>Account Information</h4>
-                <div style={{ fontSize: '16px', fontWeight: '600', color: '#1a1f36', marginBottom: '4px' }}>{selectedItem.account}</div>
+                <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--muted)', marginBottom: '8px' }}>Account Information</h4>
+                <div style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text)', marginBottom: '4px' }}>{selectedItem.account}</div>
                 <div style={{ fontSize: '14px', color: '#6b7280' }}>{selectedItem.type} • {selectedItem.department}</div>
               </div>
             )}
             
             {selectedItem.name && !selectedItem.sku && (
               <div>
-                <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#6b7280', marginBottom: '8px' }}>Employee Information</h4>
-                <div style={{ fontSize: '16px', fontWeight: '600', color: '#1a1f36', marginBottom: '4px' }}>{selectedItem.name}</div>
+                <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--muted)', marginBottom: '8px' }}>Employee Information</h4>
+                <div style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text)', marginBottom: '4px' }}>{selectedItem.name}</div>
                 <div style={{ fontSize: '14px', color: '#6b7280' }}>{selectedItem.position} • {selectedItem.department}</div>
               </div>
             )}
             
             {selectedItem.name && !selectedItem.sku && !selectedItem.account && (
               <div>
-                <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#6b7280', marginBottom: '8px' }}>Project Information</h4>
-                <div style={{ fontSize: '16px', fontWeight: '600', color: '#1a1f36', marginBottom: '4px' }}>{selectedItem.name}</div>
+                <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--muted)', marginBottom: '8px' }}>Project Information</h4>
+                <div style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text)', marginBottom: '4px' }}>{selectedItem.name}</div>
                 <div style={{ fontSize: '14px', color: '#6b7280' }}>Manager: {selectedItem.manager}</div>
               </div>
             )}
             
             <div>
-              <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#6b7280', marginBottom: '12px' }}>Actions</h4>
+              <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--muted)', marginBottom: '12px' }}>Actions</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <button style={{
                   padding: '10px 16px',
@@ -1279,7 +1294,7 @@ export function ERPSection() {
                 </button>
                 <button style={{
                   padding: '10px 16px',
-                  background: '#ffffff',
+                  background: 'var(--s1)',
                   border: '1px solid #d1d5db',
                   borderRadius: '6px',
                   color: '#374151',
@@ -1290,7 +1305,7 @@ export function ERPSection() {
                 </button>
                 <button style={{
                   padding: '10px 16px',
-                  background: '#ffffff',
+                  background: 'var(--s1)',
                   border: '1px solid #d1d5db',
                   borderRadius: '6px',
                   color: '#374151',
@@ -1300,6 +1315,167 @@ export function ERPSection() {
                   Export Report
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Search Modal */}
+      {showSearchModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'var(--s1)',
+            borderRadius: '8px',
+            padding: '24px',
+            width: '500px',
+            maxWidth: '90%'
+          }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text)', marginBottom: '16px' }}>
+              Search ERP Records
+            </h3>
+            <input
+              type="text"
+              placeholder="Search across all modules..."
+              autoFocus
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                fontSize: '14px',
+                marginBottom: '16px'
+              }}
+            />
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowSearchModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  background: 'var(--s1)',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  color: '#374151',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => setShowSearchModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  background: '#2563eb',
+                  border: 'none',
+                  borderRadius: '6px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}
+              >
+                Search
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* New Record Modal */}
+      {showNewRecordModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'var(--s1)',
+            borderRadius: '8px',
+            padding: '24px',
+            width: '500px',
+            maxWidth: '90%'
+          }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text)', marginBottom: '16px' }}>
+              Create New {newRecordType.charAt(0).toUpperCase() + newRecordType.slice(1)} Record
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <input
+                type="text"
+                placeholder="Name/Title"
+                style={{
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  fontSize: '14px'
+                }}
+              />
+              <input
+                type="text"
+                placeholder="Description"
+                style={{
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  fontSize: '14px'
+                }}
+              />
+              <input
+                type="number"
+                placeholder="Value/Amount"
+                style={{
+                  padding: '12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  fontSize: '14px'
+                }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+              <button
+                onClick={() => setShowNewRecordModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  background: 'var(--s1)',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  color: '#374151',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => setShowNewRecordModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  background: '#2563eb',
+                  border: 'none',
+                  borderRadius: '6px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}
+              >
+                Create Record
+              </button>
             </div>
           </div>
         </div>
