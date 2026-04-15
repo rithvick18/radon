@@ -18,7 +18,7 @@ export function MinimalNav({ onNavigate, onLogout, active }: any) {
     { key: 'crm', label: 'CRM' },
     { key: 'analytics', label: 'Analytics' },
     { key: 'email', label: 'Email' },
-    { key: 'neo-guard', label: 'NeoGuard' },
+    { key: 'neoguard', label: 'NeoGuard' },
     { key: 'ai-agent', label: 'AI Agent' },
   ];
 

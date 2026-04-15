@@ -863,10 +863,12 @@ function MainPage({ onLogout, onNavigate, onOpenCommandDeck, disableAmbientEffec
       <nav id="site-nav" ref={navRef}>
         <a className="n-logo" href="#"><span className="grad">RAD</span><span className="dot">·</span><span className="grad">ON</span></a>
         <ul className="n-links">
-          <li><a href="#" onClick={e => { e.preventDefault(); onNavigate('email') }}>Email Engine</a></li>
-          <li><a href="#" onClick={e => { e.preventDefault(); onNavigate('analytics') }}>Analytics</a></li>
-          <li><a href="#" onClick={e => { e.preventDefault(); onNavigate('crm') }}>CRM</a></li>
           <li><a href="#" onClick={e => { e.preventDefault(); onNavigate('erp') }}>ERP</a></li>
+          <li><a href="#" onClick={e => { e.preventDefault(); onNavigate('crm') }}>CRM</a></li>
+          <li><a href="#" onClick={e => { e.preventDefault(); onNavigate('analytics') }}>Analytics</a></li>
+          <li><a href="#" onClick={e => { e.preventDefault(); onNavigate('email') }}>Email</a></li>
+          <li><a href="#" onClick={e => { e.preventDefault(); onNavigate('neoguard') }}>NeoGuard</a></li>
+          <li><a href="#" onClick={e => { e.preventDefault(); onNavigate('ai-agent') }}>AI Agent</a></li>
         </ul>
         <div className="n-right">
           <button className="n-command" onClick={onOpenCommandDeck}><span>Mission Control</span><span className="n-command-key">Ctrl+K</span></button>
